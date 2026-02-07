@@ -19,17 +19,14 @@ templates = Jinja2Templates(directory="templates")
 def health_check():
     return {"status": "ok"}
 
-DB_CONFIG = {
-    "dbname": os.getenv("DB_NAME"),
-    "user": os.getenv("DB_USER"),
-    "password": os.getenv("DB_PASSWORD"),
-    "host": os.getenv("DB_HOST"),
-    "port": os.getenv("DB_PORT"),
-} 
+DB_CONFIG = os.getenv("DATABASE_URL")
+
+if not DB_CONFIG:
+    raise ValueError("DATABASE_URL environment variable is not set") 
 
 def get_db_connection():
     try:
-        return psycopg2.connect(**DB_CONFIG)
+        return psycopg2.connect(DB_CONFIG)
     except psycopg2.Error as e:
         print(f"Database connection error: {str(e)}")
         raise  
