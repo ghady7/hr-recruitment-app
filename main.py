@@ -2,9 +2,11 @@ import os
 import shutil
 import re
 import psycopg2
+import csv
+import io
 from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile, File, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from processor import extract_text_from_pdf, extract_text_from_docx, analyze_resume_with_ai
@@ -57,6 +59,7 @@ def create_job(title: str, tag: str, requirements: str):
 async def upload_resumes(job_id: int, files: list[UploadFile] = File(...)):
     os.makedirs("temp", exist_ok=True)
     count = 0
+    duplicates = 0
     for file in files:
         file_path = f"temp/{file.filename}"
         with open(file_path, "wb") as buffer:
@@ -66,14 +69,25 @@ async def upload_resumes(job_id: int, files: list[UploadFile] = File(...)):
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
+                # Check if this resume already exists for this job
+                cur.execute(
+                    "SELECT id FROM resumes WHERE filename = %s AND job_id = %s",
+                    (file.filename, job_id)
+                )
+                if cur.fetchone():
+                    duplicates += 1
+                    os.remove(file_path)
+                    continue
+                
                 cur.execute(
                     "INSERT INTO resumes (filename, content, job_id) VALUES (%s, %s, %s)", 
                     (file.filename, content, job_id)
                 )
                 conn.commit()
-        os.remove(file_path)
+        os.remove(file_path) if os.path.exists(file_path) else None
         count += 1
-    return {"message": f"Successfully uploaded {count} resumes."}
+    
+    return {"added": count, "skipped": duplicates, "message": f"Successfully uploaded {count} resumes. ({duplicates} duplicate(s) skipped)"}
 
 @app.post("/analyze-batch/")
 def analyze_batch(job_id: int):
@@ -123,7 +137,68 @@ def get_rankings(job_id: int):
             """, (job_id,))
             rows = cur.fetchall()
             return {"rankings": [{"filename": r[0], "candidate_name": r[1], "score": r[2], "summary": r[3]} for r in rows]}
+
+# --- ROUTE 5: EXPORT TO CSV ---
+@app.get("/export-csv/")
+def export_to_csv(job_id: int):
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # Get job info for filename
+                cur.execute("SELECT job_title, job_tag FROM jobs WHERE id = %s", (job_id,))
+                job_info = cur.fetchone()
+                if not job_info:
+                    return {"error": "Job not found"}
+                
+                job_title, job_tag = job_info
+                
+                # Get all rankings sorted by score
+                cur.execute("""
+                    SELECT filename, candidate_name, match_score, ai_analysis 
+                    FROM resumes 
+                    WHERE job_id = %s 
+                    ORDER BY match_score DESC
+                """, (job_id,))
+                rows = cur.fetchall()
         
+        # Create CSV in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(["Rank", "Candidate Name", "Match Score (%)", "Analysis Summary", "Resume File"])
+        
+        # Write data rows
+        for rank, (filename, name, score, summary) in enumerate(rows, 1):
+            writer.writerow([rank, name, score, summary, filename])
+        
+        # Generate filename
+        filename = f"{job_tag}_results.csv"
+        
+        # Return as file download
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except Exception as e:
+        return {"error": f"Export failed: {str(e)}"}
+        
+@app.delete("/delete-job/")
+def delete_job(job_id: int):
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # Delete all resumes associated with this job
+                cur.execute("DELETE FROM resumes WHERE job_id = %s", (job_id,))
+                # Delete the job
+                cur.execute("DELETE FROM jobs WHERE id = %s", (job_id,))
+                conn.commit()
+        return {"message": "Job deleted successfully"}
+    except Exception as e:
+        return {"error": f"Failed to delete job: {str(e)}"}
+
 @app.get("/jobs/")
 def get_all_jobs():
     with get_db_connection() as conn:

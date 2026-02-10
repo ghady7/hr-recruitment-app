@@ -716,7 +716,7 @@
                                     <tr>
                                         <th style="width: 80px;">ID</th>
                                         <th>Job Title</th>
-                                        <th style="width: 100px;"></th>
+                                        <th style="width: 150px;"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="job-list">
@@ -779,9 +779,14 @@
                         <div class="card-header-left">
                             <h2 class="card-title">Candidate Rankings</h2>
                         </div>
-                        <button onclick="refreshTable()" class="btn-custom btn-secondary-custom btn-sm-custom">
-                            <span>↻ Refresh</span>
-                        </button>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="refreshTable()" class="btn-custom btn-secondary-custom btn-sm-custom">
+                                <span>↻ Refresh</span>
+                            </button>
+                            <button onclick="exportToCSV()" class="btn-custom btn-secondary-custom btn-sm-custom">
+                                <span>⬇ Export CSV</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body-custom" style="padding: 0;">
                         <div style="overflow-x: auto;">
@@ -835,10 +840,15 @@
                         row.innerHTML = `
                             <td><span class="text-mono text-bold" style="color: var(--color-primary);">${job.id}</span></td>
                             <td>${escapeHtml(job.title)}</td>
-                            <td>
+                            <td style="display: flex; gap: 8px;">
                                 <button class="btn-custom btn-secondary-custom btn-sm-custom" 
                                         onclick="selectJob(${job.id})">
                                     Select
+                                </button>
+                                <button class="btn-custom btn-sm-custom" 
+                                        onclick="deleteJob(${job.id})"
+                                        style="background-color: var(--color-danger); color: white; border: none;">
+                                    Delete
                                 </button>
                             </td>
                         `;
@@ -877,6 +887,37 @@
         function selectJob(id) {
             document.getElementById('job-id-display').value = id;
             refreshTable();
+        }
+
+        // ==================== DELETE JOB ====================
+        async function deleteJob(jobId) {
+            if (!confirm(`Are you sure you want to delete Job ID ${jobId}? This will also delete all associated resumes.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/delete-job/?job_id=${jobId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.message) {
+                    alert(`✓ ${result.message}`);
+                    loadJobs();
+                    // Clear job display if it was the selected job
+                    const currentJobId = parseInt(document.getElementById('job-id-display').value);
+                    if (currentJobId === jobId) {
+                        document.getElementById('job-id-display').value = '';
+                        refreshTable();
+                    }
+                } else if (result.error) {
+                    alert(`❌ ${result.error}`);
+                }
+            } catch (err) {
+                console.error("Error deleting job:", err);
+                alert("❌ Error deleting job. Please try again.");
+            }
         }
 
         // ==================== CREATE JOB ====================
@@ -1050,6 +1091,49 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // ==================== EXPORT TO CSV ====================
+        async function exportToCSV() {
+            const jobId = document.getElementById('job-id-display').value;
+
+            if (!jobId) {
+                alert("⚠️ Please select a Job ID");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/export-csv/?job_id=${jobId}`);
+                if (!response.ok) {
+                    throw new Error("Export failed");
+                }
+
+                // Get the filename from the Content-Disposition header
+                const contentDisposition = response.headers.get('content-disposition');
+                let filename = 'candidates_export.csv';
+                if (contentDisposition) {
+                    const matches = contentDisposition.match(/filename=([^;]+)/);
+                    if (matches) {
+                        filename = matches[1].replace(/"/g, '');
+                    }
+                }
+
+                // Create blob and download
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                alert("✓ CSV exported successfully!");
+            } catch (err) {
+                console.error("Error exporting CSV:", err);
+                alert("✗ Export failed. Please try again.");
+            }
         }
     </script>
 </body>
