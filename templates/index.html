@@ -655,6 +655,9 @@
                             <span class="stat-pill-value">Active</span>
                         </div>
                     </div>
+                    <button onclick="logout()" class="btn-custom btn-secondary-custom" style="height: fit-content;">
+                        <span>🚪 Logout</span>
+                    </button>
                 </div>
             </div>
         </header>
@@ -822,50 +825,146 @@
 
     <script>
         // ==================== INITIALIZATION ====================
+        if (!checkAuthentication()) {
+            throw new Error('Not authenticated');
+        }
         window.onload = loadJobs;
+
+        // ==================== AUTHENTICATION CHECK ====================
+        function checkAuthentication() {
+            const authToken = localStorage.getItem('auth_token');
+            const guestToken = localStorage.getItem('guest_session_token');
+
+            // If no auth token AND no guest token, redirect to login
+            if (!authToken && !guestToken) {
+                window.location.href = '/login';
+                return false;
+            }
+            return true;
+        }
+
+        // ==================== HELPER FUNCTIONS ====================
+        function isGuest() {
+            return localStorage.getItem('is_guest') === 'true';
+        }
+
+        function isAuthenticated() {
+            return localStorage.getItem('auth_token') !== null;
+        }
+
+        // ==================== GUEST JOBS MANAGEMENT ====================
+        function getGuestJobs() {
+            const jobs = localStorage.getItem('guest_jobs');
+            return jobs ? JSON.parse(jobs) : [];
+        }
+
+        function saveGuestJobs(jobs) {
+            localStorage.setItem('guest_jobs', JSON.stringify(jobs));
+        }
+
+        function addGuestJob(title, tag, requirements) {
+            const jobs = getGuestJobs();
+            const newJob = {
+                id: Date.now(), // Use timestamp as unique ID
+                title: title,
+                tag: tag,
+                requirements: requirements,
+                created_at: new Date().toISOString()
+            };
+            jobs.push(newJob);
+            saveGuestJobs(jobs);
+            return newJob.id;
+        }
+
+        function deleteGuestJob(jobId) {
+            let jobs = getGuestJobs();
+            jobs = jobs.filter(job => job.id !== jobId);
+            saveGuestJobs(jobs);
+            // Also delete associated resumes
+            deleteGuestResumesForJob(jobId);
+        }
+
+        // ==================== GUEST RESUMES MANAGEMENT ====================
+        function getGuestResumes(jobId) {
+            const resumes = localStorage.getItem(`guest_resumes_${jobId}`);
+            return resumes ? JSON.parse(resumes) : [];
+        }
+
+        function saveGuestResumes(jobId, resumes) {
+            localStorage.setItem(`guest_resumes_${jobId}`, JSON.stringify(resumes));
+        }
+
+        function addGuestResume(jobId, filename, content, candidateName) {
+            const resumes = getGuestResumes(jobId);
+            const newResume = {
+                id: Date.now(),
+                filename: filename,
+                content: content,
+                candidate_name: candidateName || filename,
+                match_score: 0,
+                ai_analysis: ''
+            };
+            resumes.push(newResume);
+            saveGuestResumes(jobId, resumes);
+            return newResume.id;
+        }
+
+        function deleteGuestResumesForJob(jobId) {
+            localStorage.removeItem(`guest_resumes_${jobId}`);
+        }
+
+        // ==================== LOGOUT ====================
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Check if user is guest
+                const isGuestUser = localStorage.getItem('is_guest') === 'true';
+
+                if (isGuestUser) {
+                    // For guest users: keep all guest data (jobs, resumes, etc.)
+                    localStorage.removeItem('guest_session_token');
+                    // is_guest, guest_jobs, and all guest_resumes_* persist so they load next time
+                } else {
+                    // For authenticated users: clear everything
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_id');
+                    localStorage.removeItem('email');
+                    localStorage.removeItem('guest_session_token');
+                    localStorage.removeItem('is_guest');
+                    localStorage.removeItem('guest_jobs');
+
+                    // Also remove any guest resume data
+                    const keys = Object.keys(localStorage);
+                    keys.forEach(key => {
+                        if (key.startsWith('guest_resumes_')) {
+                            localStorage.removeItem(key);
+                        }
+                    });
+                }
+
+                // Redirect to login
+                window.location.href = '/login';
+            }
+        }
 
         // ==================== LOAD JOBS ====================
         async function loadJobs() {
             try {
-                const response = await fetch('/jobs/');
-                const data = await response.json();
                 const jobList = document.getElementById('job-list');
-                jobList.innerHTML = "";
+                let jobs = [];
 
-                if (data.jobs && data.jobs.length > 0) {
-                    data.jobs.forEach((job, index) => {
-                        const row = document.createElement('tr');
-                        row.className = 'fade-in-up';
-                        row.style.animationDelay = `${index * 0.05}s`;
-                        row.innerHTML = `
-                            <td><span class="text-mono text-bold" style="color: var(--color-primary);">${job.id}</span></td>
-                            <td>${escapeHtml(job.title)}</td>
-                            <td style="display: flex; gap: 8px;">
-                                <button class="btn-custom btn-secondary-custom btn-sm-custom" 
-                                        onclick="selectJob(${job.id})">
-                                    Select
-                                </button>
-                                <button class="btn-custom btn-sm-custom" 
-                                        onclick="deleteJob(${job.id})"
-                                        style="background-color: var(--color-danger); color: white; border: none;">
-                                    Delete
-                                </button>
-                            </td>
-                        `;
-                        jobList.appendChild(row);
+                // If guest, load from localStorage
+                if (isGuest()) {
+                    jobs = getGuestJobs();
+                    displayJobList(jobs);
+                } else if (isAuthenticated()) {
+                    // If authenticated, load from server
+                    const response = await fetch('/jobs/', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        }
                     });
-                } else {
-                    jobList.innerHTML = `
-                        <tr>
-                            <td colspan="3">
-                                <div class="empty-state">
-                                    <div class="empty-state-icon">📋</div>
-                                    <div class="empty-state-title">No job postings yet</div>
-                                    <div class="empty-state-description">Create your first position above</div>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                    const data = await response.json();
+                    displayJobList(data.jobs || []);
                 }
             } catch (err) {
                 console.error("Error loading jobs:", err);
@@ -876,6 +975,48 @@
                                 <div class="empty-state-icon">⚠️</div>
                                 <div class="empty-state-title">Error loading positions</div>
                                 <div class="empty-state-description">Please try again</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function displayJobList(jobs) {
+            const jobList = document.getElementById('job-list');
+            jobList.innerHTML = "";
+
+            if (jobs && jobs.length > 0) {
+                jobs.forEach((job, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'fade-in-up';
+                    row.style.animationDelay = `${index * 0.05}s`;
+                    const jobId = job.id || job.job_id;
+                    row.innerHTML = `
+                        <td><span class="text-mono text-bold" style="color: var(--color-primary);">${jobId}</span></td>
+                        <td>${escapeHtml(job.title || job.job_title)}</td>
+                        <td style="display: flex; gap: 8px;">
+                            <button class="btn-custom btn-secondary-custom btn-sm-custom" 
+                                    onclick="selectJob(${jobId})">
+                                Select
+                            </button>
+                            <button class="btn-custom btn-sm-custom" 
+                                    onclick="deleteJob(${jobId})"
+                                    style="background-color: var(--color-danger); color: white; border: none;">
+                                Delete
+                            </button>
+                        </td>
+                    `;
+                    jobList.appendChild(row);
+                });
+            } else {
+                jobList.innerHTML = `
+                    <tr>
+                        <td colspan="3">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📋</div>
+                                <div class="empty-state-title">No job postings yet</div>
+                                <div class="empty-state-description">Create your first position above</div>
                             </div>
                         </td>
                     </tr>
@@ -896,14 +1037,10 @@
             }
 
             try {
-                const response = await fetch(`/delete-job/?job_id=${jobId}`, {
-                    method: 'DELETE'
-                });
-
-                const result = await response.json();
-
-                if (result.message) {
-                    alert(`✓ ${result.message}`);
+                // If guest, delete from localStorage
+                if (isGuest()) {
+                    deleteGuestJob(jobId);
+                    alert(`✓ Job deleted`);
                     loadJobs();
                     // Clear job display if it was the selected job
                     const currentJobId = parseInt(document.getElementById('job-id-display').value);
@@ -911,8 +1048,29 @@
                         document.getElementById('job-id-display').value = '';
                         refreshTable();
                     }
-                } else if (result.error) {
-                    alert(`❌ ${result.error}`);
+                } else {
+                    // If authenticated, delete from server
+                    const response = await fetch(`/delete-job/?job_id=${jobId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (result.message) {
+                        alert(`✓ ${result.message}`);
+                        loadJobs();
+                        // Clear job display if it was the selected job
+                        const currentJobId = parseInt(document.getElementById('job-id-display').value);
+                        if (currentJobId === jobId) {
+                            document.getElementById('job-id-display').value = '';
+                            refreshTable();
+                        }
+                    } else if (result.error) {
+                        alert(`❌ ${result.error}`);
+                    }
                 }
             } catch (err) {
                 console.error("Error deleting job:", err);
@@ -932,21 +1090,43 @@
             }
 
             try {
-                const response = await fetch(`/create-job/?title=${encodeURIComponent(title)}&tag=${encodeURIComponent(tag)}&requirements=${encodeURIComponent(reqs)}`, {
-                    method: 'POST'
-                });
+                // If guest, save to localStorage
+                if (isGuest()) {
+                    // Check for duplicate tags in guest jobs
+                    const existingJobs = getGuestJobs();
+                    if (existingJobs.some(job => job.tag === tag)) {
+                        alert("✗ Job tag already exists. Please use a unique ID.");
+                        return;
+                    }
 
-                const result = await response.json();
-
-                if (result.job_id) {
-                    alert(`✓ Job registered successfully (ID: ${result.job_id})`);
-                    document.getElementById('job-id-display').value = result.job_id;
+                    const jobId = addGuestJob(title, tag, reqs);
+                    alert(`✓ Job registered successfully (ID: ${jobId})`);
+                    document.getElementById('job-id-display').value = jobId;
                     document.getElementById('job-title').value = '';
                     document.getElementById('job-tag-input').value = '';
                     document.getElementById('job-requirements').value = '';
                     loadJobs();
                 } else {
-                    alert("✗ Error: " + (result.error || "Registration failed. The job tag may already exist."));
+                    // If authenticated, send to server
+                    const response = await fetch(`/create-job/?title=${encodeURIComponent(title)}&tag=${encodeURIComponent(tag)}&requirements=${encodeURIComponent(reqs)}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (result.job_id) {
+                        alert(`✓ Job registered successfully (ID: ${result.job_id})`);
+                        document.getElementById('job-id-display').value = result.job_id;
+                        document.getElementById('job-title').value = '';
+                        document.getElementById('job-tag-input').value = '';
+                        document.getElementById('job-requirements').value = '';
+                        loadJobs();
+                    } else {
+                        alert("✗ Error: " + (result.error || "Registration failed. The job tag may already exist."));
+                    }
                 }
             } catch (err) {
                 console.error("Error creating job:", err);
@@ -965,26 +1145,49 @@
             }
 
             try {
-                const formData = new FormData();
-                for (const file of files) {
-                    formData.append("files", file);
-                }
+                // If guest, save to localStorage
+                if (isGuest()) {
+                    let addedCount = 0;
+                    let skippedCount = 0;
 
-                const response = await fetch(`/upload/?job_id=${jobId}`, {
-                    method: 'POST',
-                    body: formData
-                });
+                    for (const file of files) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const content = e.target.result;
+                            const candidateName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                            addGuestResume(jobId, file.name, content, candidateName);
+                            addedCount++;
+                        };
+                        reader.readAsText(file);
+                    }
 
-                const result = await response.json(); // Get the detailed counts from Python
-
-                if (response.ok) {
-                    // Updated alert to show exactly what happened
-                    alert(`✅ Done!\nAdded: ${result.added} new resumes\nSkipped: ${result.skipped} duplicates`);
-
-                    // Clear the file input so they don't upload the same ones again by mistake
-                    document.getElementById('resume-files').value = "";
+                    setTimeout(() => {
+                        alert(`✅ Done!\nAdded: ${files.length} resumes to local storage`);
+                        document.getElementById('resume-files').value = "";
+                    }, 500);
                 } else {
-                    alert("✗ Upload failed. " + (result.error || "Please try again."));
+                    // If authenticated, send to server
+                    const formData = new FormData();
+                    for (const file of files) {
+                        formData.append("files", file);
+                    }
+
+                    const response = await fetch(`/upload/?job_id=${jobId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        alert(`✅ Done!\nAdded: ${result.added} new resumes\nSkipped: ${result.skipped} duplicates`);
+                        document.getElementById('resume-files').value = "";
+                    } else {
+                        alert("✗ Upload failed. " + (result.error || "Please try again."));
+                    }
                 }
             } catch (err) {
                 console.error("Error uploading files:", err);
@@ -1006,13 +1209,106 @@
                 btn.disabled = true;
                 btn.innerHTML = '<span class="loading-spinner"></span><span>Processing...</span>';
 
-                const response = await fetch(`/analyze-batch/?job_id=${jobId}`, {
-                    method: 'POST'
-                });
-                const result = await response.json();
+                // If guest, analyze locally
+                if (isGuest()) {
+                    const resumes = getGuestResumes(jobId);
+                    if (resumes.length === 0) {
+                        alert("⚠️ No resumes to analyze");
+                        return;
+                    }
 
-                alert("✓ Analysis complete!");
-                refreshTable();
+                    // Strict job requirement validation - must be a valid, real job description
+                    const job = getGuestJobs().find(j => j.id == jobId);
+                    const jobReqs = job.requirements.toLowerCase().trim();
+
+                    // Comprehensive validation function
+                    function isValidJobRequirement(reqText) {
+                        // 1. Minimum length (must be at least 8 characters)
+                        if (reqText.length < 8) return false;
+
+                        // 2. Split into words and filter
+                        const words = reqText.split(/\W+/).filter(w => w.length > 0);
+                        if (words.length < 3) return false; // Need at least 3 words
+
+                        // 3. Check for gibberish patterns
+                        let validWords = 0;
+                        let totalVowels = 0;
+
+                        words.forEach(word => {
+                            if (word.length >= 2) {
+                                // Count vowels in word
+                                const vowels = (word.match(/[aeiou]/g) || []).length;
+                                const vowelRatio = vowels / word.length;
+
+                                // Valid word needs at least 25% vowels
+                                if (vowelRatio >= 0.25 && word.length <= 20) {
+                                    validWords++;
+                                    totalVowels += vowels;
+                                }
+                            }
+                        });
+
+                        // 4. Need minimum 3 valid words
+                        if (validWords < 3) return false;
+
+                        // 5. Overall vowel ratio must be good (30%+)
+                        const overallVowelRatio = totalVowels / reqText.replace(/\W/g, '').length;
+                        if (overallVowelRatio < 0.30) return false;
+
+                        // 6. No gibberish pattern: 4+ repeated characters
+                        if (/(.)\1{3,}/.test(reqText)) return false;
+
+                        // 7. Must not be mostly numbers
+                        const numberRatio = (reqText.match(/\d/g) || []).length / reqText.length;
+                        if (numberRatio > 0.5) return false;
+
+                        return true;
+                    }
+
+                    // Validate job requirement strictly
+                    const isValidJob = isValidJobRequirement(jobReqs);
+
+                    resumes.forEach(resume => {
+                        if (!isValidJob) {
+                            // INVALID JOB - Return 0% for ALL resumes
+                            resume.match_score = 0;
+                            resume.ai_analysis = "❌ Invalid job requirement - cannot analyze";
+                        } else {
+                            // VALID JOB - Perform keyword matching
+                            const resumeText = resume.content.toLowerCase();
+                            const validKeywords = jobReqs.split(/\W+/).filter(w => w.length >= 3);
+                            let matches = 0;
+                            let matchedList = [];
+
+                            validKeywords.forEach(keyword => {
+                                if (resumeText.includes(keyword)) {
+                                    matches++;
+                                    matchedList.push(keyword);
+                                }
+                            });
+
+                            resume.match_score = validKeywords.length > 0 ? Math.round((matches / validKeywords.length) * 100) : 0;
+                            resume.ai_analysis = matches > 0 ?
+                                `✓ Matched ${matches}/${validKeywords.length} keywords: ${matchedList.slice(0, 3).join(', ')}` :
+                                '✗ No matching keywords';
+                        }
+                    });
+
+                    saveGuestResumes(jobId, resumes);
+                    alert(isValidJob ? "✓ Analysis complete!" : "⚠️ Invalid job requirement - all scores set to 0%");
+                    refreshTable();
+                } else {
+                    // If authenticated, send to server
+                    const response = await fetch(`/analyze-batch/?job_id=${jobId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        }
+                    });
+                    const result = await response.json();
+                    alert("✓ Server analysis complete!");
+                    refreshTable();
+                }
             } catch (err) {
                 console.error("Error running analysis:", err);
                 alert("✗ Analysis failed. Please try again.");
@@ -1028,47 +1324,24 @@
             if (!jobId) return;
 
             try {
-                const response = await fetch(`/rankings/?job_id=${jobId}`);
-                const data = await response.json();
                 const table = document.getElementById('leaderboard');
-                table.innerHTML = "";
+                let rankings = [];
 
-                if (data.rankings && data.rankings.length > 0) {
-                    data.rankings.forEach((candidate, index) => {
-                        const scoreClass = candidate.score > 70 ? 'high' :
-                            (candidate.score > 40 ? 'medium' : 'low');
-
-                        const row = document.createElement('tr');
-                        row.className = 'fade-in-up';
-                        row.style.animationDelay = `${index * 0.05}s`;
-                        row.innerHTML = `
-                            <td>
-                                <div class="rank-indicator">${index + 1}</div>
-                            </td>
-                            <td><span class="text-semibold">${escapeHtml(candidate.candidate_name)}</span></td>
-                            <td>
-                                <span class="score-badge ${scoreClass}">${candidate.score}%</span>
-                            </td>
-                            <td>
-                                <span class="text-sm" style="color: var(--color-text-secondary);">
-                                    ${escapeHtml(candidate.summary)}
-                                </span>
-                            </td>
-                        `;
-                        table.appendChild(row);
-                    });
+                // If guest, get from localStorage
+                if (isGuest()) {
+                    rankings = getGuestResumes(jobId);
+                    // Sort by score
+                    rankings.sort((a, b) => b.match_score - a.match_score);
+                    displayRankings(rankings);
                 } else {
-                    table.innerHTML = `
-                        <tr>
-                            <td colspan="4">
-                                <div class="empty-state">
-                                    <div class="empty-state-icon">👥</div>
-                                    <div class="empty-state-title">No rankings available</div>
-                                    <div class="empty-state-description">Upload and analyze resumes for this position</div>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                    // If authenticated, get from server
+                    const response = await fetch(`/rankings/?job_id=${jobId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        }
+                    });
+                    const data = await response.json();
+                    displayRankings(data.rankings || []);
                 }
             } catch (err) {
                 console.error("Error refreshing rankings:", err);
@@ -1079,6 +1352,53 @@
                                 <div class="empty-state-icon">⚠️</div>
                                 <div class="empty-state-title">Error loading rankings</div>
                                 <div class="empty-state-description">Please try again</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function displayRankings(rankings) {
+            const table = document.getElementById('leaderboard');
+            table.innerHTML = "";
+
+            if (rankings && rankings.length > 0) {
+                rankings.forEach((candidate, index) => {
+                    // Normalize field names (server uses 'score'/'summary', guests use 'match_score'/'ai_analysis')
+                    const score = candidate.match_score !== undefined ? candidate.match_score : candidate.score;
+                    const analysis = candidate.ai_analysis !== undefined ? candidate.ai_analysis : candidate.summary;
+
+                    const scoreClass = score > 70 ? 'high' :
+                        (score > 40 ? 'medium' : 'low');
+
+                    const row = document.createElement('tr');
+                    row.className = 'fade-in-up';
+                    row.style.animationDelay = `${index * 0.05}s`;
+                    row.innerHTML = `
+                        <td>
+                            <div class="rank-indicator">${index + 1}</div>
+                        </td>
+                        <td><span class="text-semibold">${escapeHtml(candidate.candidate_name)}</span></td>
+                        <td>
+                            <span class="score-badge ${scoreClass}">${score}%</span>
+                        </td>
+                        <td>
+                            <span class="text-sm" style="color: var(--color-text-secondary);">
+                                ${escapeHtml(analysis || 'Analysis pending')}
+                            </span>
+                        </td>
+                    `;
+                    table.appendChild(row);
+                });
+            } else {
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">👥</div>
+                                <div class="empty-state-title">No rankings available</div>
+                                <div class="empty-state-description">Upload and analyze resumes for this position</div>
                             </div>
                         </td>
                     </tr>
@@ -1103,33 +1423,72 @@
             }
 
             try {
-                const response = await fetch(`/export-csv/?job_id=${jobId}`);
-                if (!response.ok) {
-                    throw new Error("Export failed");
-                }
+                // If guest, export from localStorage
+                if (isGuest()) {
+                    const resumes = getGuestResumes(jobId);
+                    const job = getGuestJobs().find(j => j.id == jobId);
 
-                // Get the filename from the Content-Disposition header
-                const contentDisposition = response.headers.get('content-disposition');
-                let filename = 'candidates_export.csv';
-                if (contentDisposition) {
-                    const matches = contentDisposition.match(/filename=([^;]+)/);
-                    if (matches) {
-                        filename = matches[1].replace(/"/g, '');
+                    if (resumes.length === 0) {
+                        alert("⚠️ No resumes to export");
+                        return;
                     }
+
+                    // Generate CSV
+                    let csv = "Rank,Candidate Name,Match Score,Analysis\n";
+                    resumes.sort((a, b) => {
+                        const scoreA = a.match_score !== undefined ? a.match_score : a.score;
+                        const scoreB = b.match_score !== undefined ? b.match_score : b.score;
+                        return scoreB - scoreA;
+                    }).forEach((resume, idx) => {
+                        const score = resume.match_score !== undefined ? resume.match_score : resume.score;
+                        const analysis = resume.ai_analysis !== undefined ? resume.ai_analysis : resume.summary;
+                        csv += `${idx + 1},"${resume.candidate_name}",${score},"${analysis}"\n`;
+                    });
+
+                    // Download CSV
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `candidates_${jobId}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    alert("✓ CSV exported successfully!");
+                } else {
+                    // If authenticated, get from server
+                    const response = await fetch(`/export-csv/?job_id=${jobId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error("Export failed");
+                    }
+
+                    const contentDisposition = response.headers.get('content-disposition');
+                    let filename = 'candidates_export.csv';
+                    if (contentDisposition) {
+                        const matches = contentDisposition.match(/filename=([^;]+)/);
+                        if (matches) {
+                            filename = matches[1].replace(/"/g, '');
+                        }
+                    }
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    alert("✓ CSV exported successfully!");
                 }
-
-                // Create blob and download
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-
-                alert("✓ CSV exported successfully!");
             } catch (err) {
                 console.error("Error exporting CSV:", err);
                 alert("✗ Export failed. Please try again.");

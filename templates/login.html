@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - HR Recruitment</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .auth-container {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 14px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1.5px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f0f0;
+            border-color: #bbb;
+        }
+
+        .toggle-auth {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .toggle-auth a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .toggle-auth a:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .divider::before {
+            margin-right: 10px;
+        }
+
+        .divider::after {
+            margin-left: 10px;
+        }
+
+        .alert {
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .guest-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .guest-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .guest-link a:hover {
+            text-decoration: underline;
+        }
+
+        .form-hidden {
+            display: none;
+        }
+
+        .form-visible {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>HR Recruitment</h1>
+            <p>Intelligent Resume Analysis Platform</p>
+        </div>
+
+        <div class="content">
+            <!-- Error/Success Messages -->
+            <div id="message-container"></div>
+
+            <!-- LOGIN FORM -->
+            <div id="login-form" class="auth-container form-visible">
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-primary" id="login-btn">
+                        Sign In
+                    </button>
+                </form>
+                <div class="toggle-auth">
+                    Don't have an account? <a onclick="toggleForms()">Sign Up</a>
+                </div>
+            </div>
+
+            <!-- SIGNUP FORM -->
+            <div id="signup-form" class="auth-container form-hidden">
+                <form onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <input type="text" id="signup-name" placeholder="Your Full Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email Address</label>
+                        <input type="email" id="signup-email" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm">Confirm Password</label>
+                        <input type="password" id="signup-confirm" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-primary" id="signup-btn">
+                        Create Account
+                    </button>
+                </form>
+                <div class="toggle-auth">
+                    Already have an account? <a onclick="toggleForms()">Sign In</a>
+                </div>
+            </div>
+
+            <div class="divider">OR</div>
+
+            <!-- GUEST MODE -->
+            <button class="btn-secondary" onclick="continueAsGuest()">
+                Continue as Guest
+            </button>
+
+            <div class="guest-link">
+                <p style="font-size: 12px; color: #999; margin-bottom: 10px;">
+                    Guest mode allows you to try features locally without creating an account. Your data will be stored
+                    in your browser.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = '{{ supabase_url }}';
+        const SUPABASE_ANON_KEY = '{{ supabase_anon_key }}';
+
+        const supabaseConfig = {
+            url: SUPABASE_URL || 'https://your-project.supabase.co',
+            key: SUPABASE_ANON_KEY || 'your-anon-key'
+        };
+
+        // Check if user already logged in
+        window.addEventListener('load', async () => {
+            // Check localStorage for existing token
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                // Try to refresh/validate token
+                try {
+                    const response = await fetch('/auth/validate', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (response.ok) {
+                        window.location.href = '/dashboard';
+                    }
+                } catch (e) {
+                    console.log('Token validation failed');
+                }
+            }
+        });
+
+        function toggleForms() {
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+
+            loginForm.classList.toggle('form-hidden');
+            loginForm.classList.toggle('form-visible');
+            signupForm.classList.toggle('form-hidden');
+            signupForm.classList.toggle('form-visible');
+        }
+
+        function showMessage(text, type = 'error') {
+            const container = document.getElementById('message-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = text;
+            container.innerHTML = '';
+            container.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 5000);
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-btn');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span>Signing In...';
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    localStorage.setItem('auth_token', data.access_token);
+                    localStorage.setItem('user_id', data.user_id);
+                    localStorage.setItem('email', data.email);
+                    localStorage.removeItem('is_guest');  // Clear guest flag
+                    localStorage.removeItem('guest_session_token');  // Clear guest token
+                    localStorage.removeItem('guest_jobs');  // Clear guest jobs
+
+                    showMessage('Login successful! Redirecting...', 'success');
+                    setTimeout(() => window.location.href = '/dashboard', 1500);
+                } else {
+                    showMessage(data.detail || 'Login failed. Please try again.');
+                }
+            } catch (error) {
+                showMessage('An error occurred during login. Please try again.');
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Sign In';
+            }
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirm = document.getElementById('signup-confirm').value;
+
+            if (password !== confirm) {
+                showMessage('Passwords do not match.');
+                return;
+            }
+
+            const btn = document.getElementById('signup-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span>Creating Account...';
+
+            try {
+                const response = await fetch('/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, full_name: name })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    localStorage.setItem('auth_token', data.access_token);
+                    localStorage.setItem('user_id', data.user_id);
+                    localStorage.setItem('email', data.email);
+                    localStorage.removeItem('is_guest');  // Clear guest flag
+                    localStorage.removeItem('guest_session_token');  // Clear guest token
+                    localStorage.removeItem('guest_jobs');  // Clear guest jobs
+
+                    // Check if there's guest data to migrate
+                    const guestToken = localStorage.getItem('guest_session_token');
+                    if (guestToken) {
+                        await migrateGuestData(guestToken);
+                    }
+
+                    showMessage('Account created! Redirecting...', 'success');
+                    setTimeout(() => window.location.href = '/dashboard', 1500);
+                } else {
+                    showMessage(data.detail || 'Signup failed. Please try again.');
+                }
+            } catch (error) {
+                showMessage('An error occurred during signup. Please try again.');
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Create Account';
+            }
+        }
+
+        async function continueAsGuest() {
+            try {
+                const response = await fetch('/guest-session', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.session_token) {
+                    localStorage.setItem('guest_session_token', data.session_token);
+                    localStorage.setItem('is_guest', 'true');
+
+                    showMessage('Guest session created! Redirecting...', 'success');
+                    setTimeout(() => window.location.href = '/dashboard', 1500);
+                } else {
+                    showMessage('Failed to create guest session.');
+                }
+            } catch (error) {
+                showMessage('An error occurred. Please try again.');
+                console.error(error);
+            }
+        }
+
+        async function migrateGuestData(guestToken) {
+            try {
+                const authToken = localStorage.getItem('auth_token');
+                const response = await fetch('/migrate-guest-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ guest_session_token: guestToken })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`Migrated ${data.migrated_jobs} jobs and ${data.migrated_resumes} resumes`);
+                    localStorage.removeItem('guest_session_token');
+                    localStorage.removeItem('is_guest');
+                }
+            } catch (error) {
+                console.error('Error migrating guest data:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>

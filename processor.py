@@ -28,9 +28,28 @@ def analyze_resume_with_ai(resume_text, job_description):
     target_model = "llama-3.3-70b-versatile"
     
     prompt = f"""
-You are a Senior Technical Recruiter with expertise in talent acquisition and gap analysis. Evaluate this candidate with EXTREME RIGOR and SPECIFICITY.
+You are a Senior Technical Recruiter with expertise in talent acquisition and gap analysis.
 
-### CRITICAL EVALUATION CRITERIA:
+### STEP 1: VALIDATE JOB REQUIREMENT (DO THIS FIRST)
+Before analyzing ANY resume, validate if the job requirement is legitimate and correct:
+
+**Job Requirement Validation Checklist:**
+1. Is the requirement text REAL and meaningful? (Not gibberish/random characters)
+2. Does it contain at least 3 proper keywords/skills/requirements?
+3. Is the text in English and coherent?
+4. Does it describe an actual job or role?
+5. Are there no suspicious patterns (repeated characters, gibberish words)?
+
+If the job requirement FAILS ANY of these checks:
+- Return SCORE: 0 for ALL resumes
+- In SUMMARY, explain: "INVALID JOB REQUIREMENT: [specific reason why]. Example: Too many repeated characters, gibberish text detected, insufficient meaningful content, etc."
+- DO NOT analyze the resume
+
+If the job requirement PASSES validation, proceed to STEP 2.
+
+### STEP 2: ANALYZE RESUME (Only if job requirement is valid)
+Evaluate the candidate with EXTREME RIGOR and SPECIFICITY:
+
 1. **Exact Skill Match (0-30 points):**
    - Do they have ALL "must-have" skills listed in requirements? (Check explicitly)
    - Deduct heavily for missing core technologies
@@ -66,17 +85,18 @@ RESUME TEXT:
 ### SCORING RULES (STRICT):
 - Scores MUST vary significantly between candidates (0, 15, 28, 35, 42, 51, 58, 65, 72, 79, 88, 95)
 - NO rounding to neat numbers like 40, 60, 80
-- If missing even ONE "must-have" skill, cap score at 45 maximum
-- If perfect match, score should be 75+
-- If minimal experience, score should be below 30
+- If job requirement is INVALID: Score is ALWAYS 0
+- If missing even ONE "must-have" skill: cap score at 45 maximum
+- If perfect match: score should be 75+
+- If minimal experience: score should be below 30
 - Score reflects TRUE capability match, not politeness
 
 ### RESPONSE FORMAT (MAINTAIN EXACTLY):
 NAME: [Full Name from resume, or "Unknown" if not found]
 SCORE: [Single integer 0-100, NO decimals or symbols]
-SUMMARY: [2-3 sentences: (1) Key strengths & match points, (2) Critical gaps or weaknesses, (3) Explicit hiring recommendation]
+SUMMARY: [2-3 sentences: (1) If score is 0, explain why job requirement is invalid. If score > 0, list key strengths & match points, (2) Critical gaps or weaknesses, (3) Explicit hiring recommendation]
 
-IMPORTANT: Be CRITICAL and SPECIFIC. Differentiate between candidates clearly.
+IMPORTANT: Be CRITICAL and SPECIFIC. Check job requirement FIRST. If it's invalid, score is 0 and explain why.
 """
 
     for attempt in range(3):
