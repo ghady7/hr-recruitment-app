@@ -1,1500 +1,1033 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Talent Intelligence Platform | AI-Powered Recruitment</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
-        rel="stylesheet">
+    <title>Dashboard – HR Recruitment</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* ==================== DESIGN TOKENS ==================== */
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
         :root {
-            /* Color Palette - Professional Corporate */
-            --color-background: #fafbfc;
-            --color-surface: #ffffff;
-            --color-surface-elevated: #ffffff;
-            --color-border: #e4e7eb;
-            --color-border-subtle: #f1f3f5;
-
-            /* Text Hierarchy */
-            --color-text-primary: #0f172a;
-            --color-text-secondary: #475569;
-            --color-text-tertiary: #94a3b8;
-            --color-text-inverse: #ffffff;
-
-            /* Brand & Accents */
-            --color-primary: #2563eb;
-            --color-primary-hover: #1d4ed8;
-            --color-primary-light: #dbeafe;
-            --color-success: #10b981;
-            --color-success-light: #d1fae5;
-            --color-warning: #f59e0b;
-            --color-warning-light: #fef3c7;
-            --color-danger: #ef4444;
-            --color-danger-light: #fee2e2;
-
-            /* Shadows - Refined depth system */
-            --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.03);
-            --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
-            --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.08);
-            --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.08);
-            --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
-
-            /* Typography */
-            --font-primary: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
-
-            /* Spacing Scale */
-            --space-xs: 0.5rem;
-            --space-sm: 0.75rem;
-            --space-md: 1rem;
-            --space-lg: 1.5rem;
-            --space-xl: 2rem;
-            --space-2xl: 3rem;
-
-            /* Border Radius */
-            --radius-sm: 6px;
-            --radius-md: 10px;
-            --radius-lg: 14px;
-            --radius-xl: 18px;
-
-            /* Transitions */
-            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+            --bg:           #07090f;
+            --surface:      #0d1117;
+            --surface-2:    #111827;
+            --surface-3:    #1a2235;
+            --border:       #1e2a3a;
+            --border-lit:   #2a3f58;
+            --primary:      #38bdf8;
+            --primary-dim:  rgba(56,189,248,.12);
+            --primary-glow: rgba(56,189,248,.25);
+            --accent:       #34d399;
+            --accent-dim:   rgba(52,211,153,.1);
+            --danger:       #f87171;
+            --danger-dim:   rgba(248,113,113,.1);
+            --warning:      #fbbf24;
+            --warning-dim:  rgba(251,191,36,.1);
+            --txt:          #e2e8f0;
+            --txt-2:        #94a3b8;
+            --txt-3:        #475569;
+            --sidebar-w:    300px;
         }
 
-        /* ==================== BASE STYLES ==================== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        html { scroll-behavior:smooth; }
 
         body {
-            font-family: var(--font-primary);
-            background: var(--color-background);
-            color: var(--color-text-primary);
-            line-height: 1.6;
-            font-size: 15px;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        /* ==================== LAYOUT ==================== */
-        .app-container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: var(--space-xl) var(--space-lg);
-        }
-
-        /* ==================== HEADER ==================== */
-        .app-header {
-            margin-bottom: var(--space-2xl);
-            padding-bottom: var(--space-xl);
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: var(--space-lg);
-        }
-
-        .header-title-section {
-            flex: 1;
-            min-width: 300px;
-        }
-
-        .header-title {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            color: var(--color-text-primary);
-            margin-bottom: var(--space-xs);
-            line-height: 1.2;
-        }
-
-        .header-subtitle {
-            font-size: 0.9375rem;
-            color: var(--color-text-secondary);
-            font-weight: 500;
-            letter-spacing: -0.01em;
-        }
-
-        .header-stats {
-            display: flex;
-            gap: var(--space-lg);
-            align-items: center;
-        }
-
-        .stat-pill {
-            display: flex;
-            align-items: center;
-            gap: var(--space-sm);
-            padding: var(--space-sm) var(--space-md);
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-xs);
-        }
-
-        .stat-pill-icon {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--color-primary-light);
-            border-radius: var(--radius-sm);
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--color-primary);
-        }
-
-        .stat-pill-content {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--txt);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            gap: 2px;
         }
 
-        .stat-pill-label {
-            font-size: 0.6875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--color-text-tertiary);
-            font-weight: 700;
+        body::before {
+            content:'';
+            position:fixed; inset:0;
+            background: radial-gradient(ellipse 120% 50% at 50% -20%, rgba(56,189,248,.05) 0%, transparent 65%);
+            pointer-events:none; z-index:0;
         }
 
-        .stat-pill-value {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: var(--color-text-primary);
-            font-family: var(--font-mono);
-        }
-
-        /* ==================== CARDS ==================== */
-        .section-card {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: var(--space-lg);
-            overflow: hidden;
-            transition: box-shadow var(--transition-base);
-        }
-
-        .section-card:hover {
-            box-shadow: var(--shadow-md);
-        }
-
-        .card-header-custom {
-            padding: var(--space-lg) var(--space-xl);
-            border-bottom: 1px solid var(--color-border-subtle);
-            background: var(--color-surface);
+        /* ═══════════════════ TOPBAR ═══════════════════ */
+        .topbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 56px;
+            background: rgba(7,9,15,.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            padding: 0 24px;
+            z-index: 200;
         }
 
-        .card-header-left {
-            display: flex;
-            align-items: center;
-            gap: var(--space-md);
+        .topbar-left { display:flex; align-items:center; gap:14px; }
+
+        .logo {
+            display:flex; align-items:center; gap:10px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px; font-weight: 600;
+            color: var(--txt); letter-spacing:-.2px;
         }
 
-        .card-step-badge {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
-            color: var(--color-text-inverse);
-            border-radius: var(--radius-md);
-            font-weight: 700;
-            font-size: 0.875rem;
-            font-family: var(--font-mono);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        .logo-mark {
+            width:28px; height:28px;
+            background: linear-gradient(135deg,#0ea5e9,#38bdf8);
+            border-radius:7px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:14px;
+            box-shadow:0 0 14px var(--primary-glow);
+            flex-shrink:0;
         }
 
-        .card-title {
-            font-size: 1.0625rem;
-            font-weight: 700;
-            color: var(--color-text-primary);
-            letter-spacing: -0.02em;
-            margin: 0;
+        .logo-sep { color:var(--txt-3); font-weight:300; }
+
+        .topbar-pill {
+            font-family:'IBM Plex Mono',monospace;
+            font-size:10px; color:var(--primary);
+            background:var(--primary-dim);
+            border:1px solid rgba(56,189,248,.2);
+            border-radius:4px; padding:2px 8px; letter-spacing:.5px;
         }
 
-        .card-body-custom {
-            padding: var(--space-xl);
+        .topbar-right { display:flex; align-items:center; gap:12px; }
+
+        .topbar-user {
+            display:flex; align-items:center; gap:8px;
+            padding:5px 12px 5px 7px;
+            background:var(--surface-2);
+            border:1px solid var(--border);
+            border-radius:24px;
+            font-size:12px; color:var(--txt-2);
+            white-space:nowrap;
         }
 
-        /* ==================== FORMS ==================== */
-        .form-group-custom {
-            margin-bottom: var(--space-lg);
+        .avatar {
+            width:24px; height:24px;
+            background:linear-gradient(135deg,#0369a1,#38bdf8);
+            border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            font-family:'IBM Plex Mono',monospace;
+            font-weight:600; font-size:11px; color:#fff;
+            flex-shrink:0;
         }
 
-        .form-label-custom {
-            display: block;
-            font-size: 0.8125rem;
-            font-weight: 700;
-            color: var(--color-text-secondary);
-            margin-bottom: var(--space-sm);
-            letter-spacing: -0.01em;
-            text-transform: uppercase;
-            font-size: 0.6875rem;
-            letter-spacing: 0.05em;
+        .btn-signout {
+            padding:6px 14px;
+            background:transparent; color:var(--danger);
+            border:1px solid rgba(248,113,113,.25);
+            border-radius:7px; cursor:pointer;
+            font-family:'Inter',sans-serif;
+            font-size:12px; font-weight:600;
+            transition:all .2s; white-space:nowrap;
+        }
+        .btn-signout:hover { background:var(--danger-dim); border-color:rgba(248,113,113,.5); }
+
+        /* ═══════════════════ APP SHELL ═══════════════════ */
+        .app-shell {
+            display:flex;
+            margin-top:56px;
+            min-height:calc(100vh - 56px);
+            position:relative; z-index:1;
         }
 
-        .form-control-custom {
-            width: 100%;
-            padding: 0.875rem var(--space-md);
-            font-size: 0.9375rem;
-            font-family: var(--font-primary);
-            color: var(--color-text-primary);
-            background: var(--color-surface);
-            border: 1.5px solid var(--color-border);
-            border-radius: var(--radius-md);
-            transition: all var(--transition-fast);
-            outline: none;
+        /* ═══════════════════ SIDEBAR ═══════════════════ */
+        .sidebar {
+            width:var(--sidebar-w);
+            min-width:var(--sidebar-w);
+            background:var(--surface);
+            border-right:1px solid var(--border);
+            padding:24px 18px;
+            position:sticky;
+            top:56px;
+            height:calc(100vh - 56px);
+            overflow-y:auto;
+            display:flex;
+            flex-direction:column;
+            gap:22px;
         }
 
-        .form-control-custom:focus {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+        .sidebar::-webkit-scrollbar { width:3px; }
+        .sidebar::-webkit-scrollbar-thumb { background:var(--border-lit); border-radius:2px; }
+
+        .sb-section { display:flex; flex-direction:column; gap:5px; }
+
+        .sb-label {
+            font-family:'IBM Plex Mono',monospace;
+            font-size:12px; font-weight:800 ;
+            color:rgba(20, 121, 20, 0.785); text-transform:uppercase;
+            letter-spacing:1.5px;
+            padding:0 2px; margin-bottom:6px;
+            display:flex; align-items:center; gap:8px;
+        }
+        .sb-label::after {
+            content:''; flex:1; height:1px;
+            background:var(--border);
         }
 
-        .form-control-custom::placeholder {
-            color: var(--color-text-tertiary);
+        .field { margin-bottom:10px; }
+        .field label {
+            display:block; font-size:10px; font-weight:500;
+            color:var(--txt-3); margin-bottom:5px;
+            text-transform:uppercase; letter-spacing:.6px;
+        }
+        .field input,
+        .field textarea,
+        .field select {
+            width:100%; padding:9px 11px;
+            background:var(--surface-2);
+            border:1px solid var(--border);
+            border-radius:7px;
+            font-family:'Inter',sans-serif;
+            font-size:12px; color:var(--txt);
+            outline:none;
+            transition:border-color .2s, background .2s;
+            resize:none;
+        }
+        .field input::placeholder, .field textarea::placeholder { color:var(--txt-3); }
+        .field input:focus, .field textarea:focus, .field select:focus {
+            border-color:var(--primary);
+            background:rgba(56,189,248,.04);
+        }
+        .field textarea { min-height:84px; resize:vertical; line-height:1.55; }
+        .field select option { background:#111827; }
+
+        .btn {
+            width:100%; padding:9px 14px;
+            border:none; border-radius:8px;
+            font-family:'Inter',sans-serif;
+            font-size:12px; font-weight:600;
+            cursor:pointer; transition:all .2s;
+            display:flex; align-items:center;
+            justify-content:center; gap:6px;
+            letter-spacing:.1px; white-space:nowrap;
         }
 
-        textarea.form-control-custom {
-            resize: vertical;
-            min-height: 120px;
-            font-family: var(--font-primary);
-            line-height: 1.6;
+        .btn-primary {
+            background:linear-gradient(135deg,#0369a1 0%,#38bdf8 100%);
+            color:#fff;
+            box-shadow:0 3px 14px rgba(56,189,248,.2);
+        }
+        .btn-primary:hover:not(:disabled) { filter:brightness(1.08); box-shadow:0 5px 20px rgba(56,189,248,.35); }
+        .btn-primary:disabled { opacity:.4; cursor:not-allowed; }
+
+        .btn-green {
+            background:linear-gradient(135deg,#065f46 0%,#34d399 100%);
+            color:#fff;
+            box-shadow:0 3px 14px rgba(52,211,153,.15);
+            margin-top:6px;
+        }
+        .btn-green:hover:not(:disabled) { filter:brightness(1.08); box-shadow:0 5px 20px rgba(52,211,153,.3); }
+        .btn-green:disabled { opacity:.4; cursor:not-allowed; }
+
+        .file-drop {
+            border:1.5px dashed var(--border-lit);
+            border-radius:9px; padding:18px 10px;
+            text-align:center; cursor:pointer;
+            transition:all .25s;
+            background:var(--surface-2);
+            margin-bottom:8px;
+        }
+        .file-drop:hover { border-color:var(--primary); background:var(--primary-dim); }
+        .file-drop input { display:none; }
+        .file-drop-icon { font-size:26px; display:block; margin-bottom:5px; }
+        .file-drop-title { font-size:11px; font-weight:600; color:var(--txt-2); margin-bottom:2px; }
+        .file-drop-hint { font-size:10px; color:var(--txt-3); }
+
+        .files-chip {
+            padding:7px 10px;
+            background:var(--primary-dim);
+            border:1px solid rgba(56,189,248,.2);
+            border-radius:6px;
+            font-size:11px; color:var(--primary);
+            display:flex; align-items:center; gap:6px;
+            margin-bottom:7px;
+            overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
         }
 
-        input[type="file"].form-control-custom {
-            padding: 0.75rem var(--space-md);
-            cursor: pointer;
+        /* ═══════════════════ MAIN ═══════════════════ */
+        .main {
+            flex:1;
+            min-width:0;
+            padding:32px 36px 60px;
+            display:flex;
+            flex-direction:column;
+            gap:28px;
         }
 
-        input[type="file"].form-control-custom::file-selector-button {
-            padding: 0.5rem var(--space-md);
-            margin-right: var(--space-md);
-            background: var(--color-background);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-sm);
-            font-size: 0.8125rem;
-            font-weight: 600;
-            color: var(--color-text-secondary);
-            cursor: pointer;
-            transition: all var(--transition-fast);
+        .main-header { animation:fadeUp .5s ease both; }
+
+        .eyebrow {
+            font-family:'IBM Plex Mono',monospace;
+            font-size:10px; color:var(--primary);
+            letter-spacing:2px; text-transform:uppercase;
+            margin-bottom:6px;
+            display:flex; align-items:center; gap:8px;
+        }
+        .eyebrow::before { content:''; width:20px; height:1px; background:var(--primary); }
+
+        .main-title {
+            font-family:'IBM Plex Mono',monospace;
+            font-size:26px; font-weight:600;
+            color:var(--txt); letter-spacing:-1px;
+        }
+        .main-title span { color:var(--primary); }
+
+        .main-sub { font-size:13px; color:var(--txt-2); margin-top:6px; line-height:1.6; }
+
+        /* ═══════════════════ PANELS ═══════════════════ */
+        .panel {
+            background:var(--surface);
+            border:1px solid var(--border);
+            border-radius:14px;
+            overflow:hidden;
+            animation:fadeUp .45s ease both;
         }
 
-        input[type="file"].form-control-custom::file-selector-button:hover {
-            background: var(--color-border-subtle);
+        .panel-head {
+            display:flex; align-items:center;
+            justify-content:space-between;
+            padding:14px 20px;
+            border-bottom:1px solid var(--border);
+            background:var(--surface-2);
         }
 
-        /* ==================== BUTTONS ==================== */
-        .btn-custom {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-sm);
-            padding: 0.875rem var(--space-lg);
-            font-size: 0.9375rem;
-            font-weight: 600;
-            font-family: var(--font-primary);
-            line-height: 1;
-            text-align: center;
-            border: none;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            outline: none;
-            text-decoration: none;
-            letter-spacing: -0.01em;
+        .panel-head-left { display:flex; align-items:center; gap:12px; }
+
+        .panel-icon {
+            width:32px; height:32px;
+            border-radius:8px;
+            background:var(--primary-dim);
+            border:1px solid rgba(56,189,248,.18);
+            display:flex; align-items:center; justify-content:center;
+            font-size:16px; flex-shrink:0;
         }
 
-        .btn-primary-custom {
-            background: var(--color-primary);
-            color: var(--color-text-inverse);
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+        .panel-title {
+            font-family:'IBM Plex Mono',monospace;
+            font-size:13px; font-weight:600;
+            color:var(--txt); letter-spacing:-.2px;
         }
 
-        .btn-primary-custom:hover {
-            background: var(--color-primary-hover);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-            transform: translateY(-1px);
+        .panel-subtitle { font-size:11px; color:var(--txt-3); margin-top:1px; }
+
+        /* ═══════════════════ TABLE — THE KEY FIX ═══════════════════ */
+        /*
+         * Tables live inside .panel which has flex:1 and min-width:0.
+         * .tbl-wrap is overflow-x:auto so very long content scrolls horizontally
+         * instead of breaking words. table-layout:auto lets columns size naturally.
+         * NO max-width, NO text-overflow:ellipsis on td — text is always fully visible.
+         */
+        .tbl-wrap { width:100%; overflow-x:auto; }
+
+        .tbl {
+            width:100%;
+            border-collapse:collapse;
+            table-layout:auto;
         }
 
-        .btn-primary-custom:active {
-            transform: translateY(0);
+        .tbl thead tr { border-bottom:1px solid var(--border); }
+
+        .tbl th {
+            padding:10px 18px;
+            text-align:left;
+            font-family:'IBM Plex Mono',monospace;
+            font-size:10px; font-weight:500;
+            color:var(--txt-3);
+            text-transform:uppercase; letter-spacing:1px;
+            white-space:nowrap;
+            background:var(--surface-2);
         }
 
-        .btn-secondary-custom {
-            background: var(--color-background);
-            color: var(--color-text-primary);
-            border: 1.5px solid var(--color-border);
+        .tbl td {
+            padding:13px 18px;
+            font-size:13px; color:var(--txt-2);
+            border-bottom:1px solid rgba(30,42,58,.6);
+            /* Allow wrapping on spaces but NEVER break mid-word */
+            word-break:normal;
+            overflow-wrap:anywhere;
         }
 
-        .btn-secondary-custom:hover {
-            background: var(--color-surface);
-            border-color: var(--color-text-tertiary);
+        .tbl td:first-child { color:var(--txt); font-weight:500; }
+        .tbl tbody tr { transition:background .12s; }
+        .tbl tbody tr:hover { background:rgba(56,189,248,.03); }
+        .tbl tbody tr:last-child td { border-bottom:none; }
+
+        .tbl code {
+            font-family:'IBM Plex Mono',monospace;
+            font-size:11px; color:var(--accent);
+            background:var(--accent-dim);
+            padding:2px 8px; border-radius:4px;
+            white-space:nowrap;
         }
 
-        .btn-success-custom {
-            background: var(--color-success);
-            color: var(--color-text-inverse);
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+        /* ── badges ── */
+        .badge {
+            display:inline-flex; align-items:center; gap:4px;
+            padding:3px 10px; border-radius:20px;
+            font-size:11px; font-weight:600; white-space:nowrap;
+        }
+        .badge-green  { background:var(--accent-dim);  color:var(--accent);  border:1px solid rgba(52,211,153,.25); }
+        .badge-yellow { background:var(--warning-dim); color:var(--warning); border:1px solid rgba(251,191,36,.25); }
+        .badge-red    { background:var(--danger-dim);  color:var(--danger);  border:1px solid rgba(248,113,113,.25); }
+
+        /* ── score bar ── */
+        .score-wrap { display:flex; align-items:center; gap:10px; min-width:140px; }
+        .score-bar { flex:1; height:4px; background:var(--surface-3); border-radius:2px; overflow:hidden; }
+        .score-bar-fill { height:100%; border-radius:2px; }
+        .score-num {
+            font-family:'IBM Plex Mono',monospace;
+            font-size:12px; font-weight:600;
+            white-space:nowrap; min-width:38px; text-align:right;
         }
 
-        .btn-success-custom:hover {
-            background: #059669;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-            transform: translateY(-1px);
+        /* ── row actions ── */
+        .btn-row {
+            display:inline-flex; align-items:center; gap:5px;
+            padding:5px 12px; border-radius:6px;
+            font-family:'Inter',sans-serif;
+            font-size:11px; font-weight:600;
+            cursor:pointer; border:1px solid;
+            transition:all .18s; white-space:nowrap;
+        }
+        .btn-view { background:var(--primary-dim); color:var(--primary); border-color:rgba(56,189,248,.2); }
+        .btn-view:hover { background:rgba(56,189,248,.2); border-color:rgba(56,189,248,.5); }
+        .btn-del  { background:var(--danger-dim);  color:var(--danger);  border-color:rgba(248,113,113,.2); }
+        .btn-del:hover  { background:rgba(248,113,113,.2); border-color:rgba(248,113,113,.5); }
+
+        /* ── panel footer ── */
+        .panel-foot {
+            padding:12px 20px;
+            border-top:1px solid var(--border);
+            background:var(--surface-2);
+            display:flex; justify-content:flex-end;
         }
 
-        .btn-sm-custom {
-            padding: 0.5rem var(--space-md);
-            font-size: 0.8125rem;
+        .btn-export {
+            display:inline-flex; align-items:center; gap:7px;
+            padding:9px 20px;
+            background:var(--primary-dim); color:var(--primary);
+            border:1px solid rgba(56,189,248,.25);
+            border-radius:8px; cursor:pointer;
+            font-family:'Inter',sans-serif;
+            font-size:12px; font-weight:600;
+            transition:all .2s;
+        }
+        .btn-export:hover:not(:disabled) { background:rgba(56,189,248,.2); border-color:rgba(56,189,248,.5); }
+        .btn-export:disabled { opacity:.4; cursor:not-allowed; }
+
+        /* ─── empty ─── */
+        .empty { text-align:center; padding:44px 20px; }
+        .empty-icon { font-size:32px; display:block; opacity:.3; margin-bottom:10px; }
+        .empty-title { font-size:13px; font-weight:600; color:var(--txt-2); margin-bottom:4px; }
+        .empty-hint  { font-size:12px; color:var(--txt-3); }
+
+        /* ═══════════════════ ALERTS (toasts) ═══════════════════ */
+        #alerts {
+            position:fixed; top:66px; right:20px;
+            z-index:500; display:flex; flex-direction:column;
+            gap:8px; max-width:360px; width:calc(100vw - 40px);
         }
 
-        .btn-block-custom {
-            width: 100%;
+        .alert {
+            padding:12px 16px; border-radius:10px;
+            font-size:12px; font-weight:500;
+            display:flex; align-items:flex-start; gap:10px;
+            animation:toastIn .35s cubic-bezier(.16,1,.3,1) both;
+            box-shadow:0 8px 32px rgba(0,0,0,.45);
+            border-left:3px solid;
+            backdrop-filter:blur(12px);
+        }
+        @keyframes toastIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+        .alert-success { background:rgba(6,20,14,.92);  border-color:var(--accent);   color:#86efac; }
+        .alert-error   { background:rgba(20,6,6,.92);   border-color:var(--danger);   color:#fca5a5; }
+        .alert-warning { background:rgba(20,14,4,.92);  border-color:var(--warning);  color:#fde68a; }
+        .alert-info    { background:rgba(4,12,22,.92);  border-color:var(--primary);  color:#7dd3fc; }
+        .alert-ico { font-size:13px; flex-shrink:0; margin-top:1px; }
+
+        /* ═══════════════════ MODAL ═══════════════════ */
+        .modal {
+            display:none; position:fixed; inset:0; z-index:900;
+            background:rgba(0,0,0,.72); backdrop-filter:blur(10px);
+            animation:fadeUp .3s ease both;
+            overflow-y:auto; padding:40px 20px;
         }
 
-        .btn-group-custom {
-            display: grid;
-            gap: var(--space-md);
+        .modal-box {
+            background:var(--surface);
+            border:1px solid var(--border-lit);
+            border-radius:16px; width:100%; max-width:700px;
+            margin:0 auto;
+            box-shadow:0 32px 80px rgba(0,0,0,.7);
+            animation:modalUp .4s cubic-bezier(.16,1,.3,1) both;
+            overflow:hidden; display:flex; flex-direction:column;
+        }
+        @keyframes modalUp {
+            from{opacity:0;transform:translateY(28px) scale(.97)}
+            to  {opacity:1;transform:translateY(0)    scale(1)  }
         }
 
-        /* ==================== TABLES ==================== */
-        .table-container {
-            max-height: 400px;
-            overflow-y: auto;
-            border-radius: var(--radius-md);
+        .modal-head {
+            padding:20px 24px 16px;
+            border-bottom:1px solid var(--border);
+            background:var(--surface-2);
+            flex-shrink:0; position:relative;
+        }
+        .modal-head::after {
+            content:''; position:absolute;
+            top:0; left:0; right:0; height:1px;
+            background:linear-gradient(90deg,transparent,var(--primary),var(--accent),transparent);
+            opacity:.6;
         }
 
-        .table-container::-webkit-scrollbar {
-            width: 8px;
+        .modal-title {
+            font-family:'IBM Plex Mono',monospace;
+            font-size:16px; font-weight:600;
+            color:var(--txt); margin-bottom:12px;
+            display:flex; align-items:center; gap:10px;
         }
 
-        .table-container::-webkit-scrollbar-track {
-            background: var(--color-background);
+        .modal-meta { display:flex; gap:8px; flex-wrap:wrap; }
+
+        .modal-chip {
+            display:inline-flex; align-items:center; gap:6px;
+            padding:4px 12px;
+            background:var(--surface-3);
+            border:1px solid var(--border);
+            border-radius:6px; font-size:11px; font-weight:500;
+            color:var(--txt-2); white-space:nowrap;
+        }
+        .chip-dot {
+            width:6px; height:6px; border-radius:50%;
+            background:var(--primary); box-shadow:0 0 6px var(--primary);
+            flex-shrink:0;
         }
 
-        .table-container::-webkit-scrollbar-thumb {
-            background: var(--color-border);
-            border-radius: 4px;
+        .modal-scroll {
+            overflow-y:auto; padding:20px 24px; max-height:55vh;
+        }
+        .modal-scroll::-webkit-scrollbar { width:3px; }
+        .modal-scroll::-webkit-scrollbar-thumb { background:var(--border-lit); border-radius:2px; }
+
+        .modal-body {
+            font-size:13px; line-height:1.8; color:var(--txt-2);
+            white-space:pre-wrap; word-break:break-word;
+            background:var(--surface-2);
+            border:1px solid var(--border);
+            border-left:3px solid var(--primary);
+            border-radius:8px; padding:18px;
         }
 
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: var(--color-text-tertiary);
+        .modal-foot {
+            padding:12px 24px; border-top:1px solid var(--border);
+            display:flex; justify-content:flex-end;
+            background:rgba(0,0,0,.2); flex-shrink:0;
         }
 
-        .table-custom {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9375rem;
+        .btn-modal-close {
+            padding:9px 22px;
+            background:var(--surface-3); color:var(--txt-2);
+            border:1px solid var(--border); border-radius:8px;
+            cursor:pointer; font-family:'Inter',sans-serif;
+            font-size:12px; font-weight:600; transition:all .2s;
         }
+        .btn-modal-close:hover { background:var(--border-lit); color:var(--txt); }
 
-        .table-custom thead {
-            position: sticky;
-            top: 0;
-            background: var(--color-background);
-            z-index: 10;
-        }
-
-        .table-custom thead th {
-            padding: var(--space-md) var(--space-lg);
-            text-align: left;
-            font-size: 0.6875rem;
-            font-weight: 700;
-            color: var(--color-text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 1.5px solid var(--color-border);
-        }
-
-        .table-custom tbody tr {
-            border-bottom: 1px solid var(--color-border-subtle);
-            transition: background var(--transition-fast);
-        }
-
-        .table-custom tbody tr:hover {
-            background: var(--color-background);
-        }
-
-        .table-custom tbody td {
-            padding: var(--space-md) var(--space-lg);
-            color: var(--color-text-primary);
-            vertical-align: middle;
-        }
-
-        .table-custom tbody tr:last-child {
-            border-bottom: none;
-        }
-
-        /* ==================== BADGES & PILLS ==================== */
-        .score-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.375rem 0.75rem;
-            font-size: 0.8125rem;
-            font-weight: 700;
-            font-family: var(--font-mono);
-            border-radius: var(--radius-sm);
-            min-width: 60px;
-        }
-
-        .score-badge.high {
-            background: var(--color-success-light);
-            color: var(--color-success);
-        }
-
-        .score-badge.medium {
-            background: var(--color-warning-light);
-            color: #d97706;
-        }
-
-        .score-badge.low {
-            background: var(--color-danger-light);
-            color: var(--color-danger);
-        }
-
-        .rank-indicator {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
-            color: var(--color-text-inverse);
-            border-radius: var(--radius-md);
-            font-weight: 700;
-            font-size: 0.9375rem;
-            font-family: var(--font-mono);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
-        }
-
-        /* ==================== EMPTY STATES ==================== */
-        .empty-state {
-            text-align: center;
-            padding: var(--space-2xl) var(--space-lg);
-            color: var(--color-text-tertiary);
-        }
-
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: var(--space-md);
-            opacity: 0.3;
-        }
-
-        .empty-state-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--color-text-secondary);
-            margin-bottom: var(--space-xs);
-        }
-
-        .empty-state-description {
-            font-size: 0.875rem;
-            color: var(--color-text-tertiary);
-        }
-
-        /* ==================== LOADING STATES ==================== */
+        /* ── spinner ── */
         .loading-spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: var(--color-text-inverse);
-            border-radius: 50%;
-            animation: spinner-rotate 0.6s linear infinite;
+            display:inline-block; width:12px; height:12px;
+            border:2px solid rgba(255,255,255,.2);
+            border-top-color:#fff; border-radius:50%;
+            animation:rot .7s linear infinite;
+        }
+        @keyframes rot { to{transform:rotate(360deg)} }
+
+        @keyframes fadeUp {
+            from{opacity:0;transform:translateY(12px)}
+            to  {opacity:1;transform:translateY(0)}
         }
 
-        @keyframes spinner-rotate {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .btn-custom:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        /* ==================== ANIMATIONS ==================== */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .fade-in-up {
-            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-        }
-
-        /* ==================== GRID LAYOUTS ==================== */
-        .form-row-custom {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: var(--space-lg);
-            margin-bottom: var(--space-lg);
-        }
-
-        /* ==================== UTILITIES ==================== */
-        .text-mono {
-            font-family: var(--font-mono);
-        }
-
-        .text-semibold {
-            font-weight: 600;
-        }
-
-        .text-bold {
-            font-weight: 700;
-        }
-
-        .text-sm {
-            font-size: 0.875rem;
-        }
-
-        .mb-0 {
-            margin-bottom: 0;
-        }
-
-        .mt-lg {
-            margin-top: var(--space-lg);
-        }
-
-        /* ==================== RESPONSIVE ==================== */
-        @media (max-width: 768px) {
-            .app-container {
-                padding: var(--space-lg) var(--space-md);
-            }
-
-            .header-title {
-                font-size: 1.5rem;
-            }
-
-            .header-stats {
-                flex-wrap: wrap;
-            }
-
-            .card-body-custom {
-                padding: var(--space-lg);
-            }
-
-            .form-row-custom {
-                grid-template-columns: 1fr;
-            }
-
-            .table-custom {
-                font-size: 0.875rem;
-            }
-
-            .table-custom thead th,
-            .table-custom tbody td {
-                padding: var(--space-sm) var(--space-md);
-            }
-        }
-
-        /* ==================== ACCESSIBILITY ==================== */
-        .btn-custom:focus-visible,
-        .form-control-custom:focus-visible {
-            outline: 2px solid var(--color-primary);
-            outline-offset: 2px;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
+        /* ─── RESPONSIVE ─── */
+        @media (max-width:880px) {
+            .app-shell { flex-direction:column; }
+            .sidebar { width:100%; min-width:unset; height:auto; position:static; border-right:none; border-bottom:1px solid var(--border); }
+            .main { padding:24px 16px 40px; }
         }
     </style>
 </head>
-
 <body>
-    <div class="app-container">
-        <!-- HEADER -->
-        <header class="app-header fade-in-up">
-            <div class="header-content">
-                <div class="header-title-section">
-                    <h1 class="header-title">Talent Intelligence Platform</h1>
-                    <p class="header-subtitle">AI-powered candidate analysis and ranking system</p>
-                </div>
-                <div class="header-stats">
-                    <div class="stat-pill">
-                        <div class="stat-pill-icon">📊</div>
-                        <div class="stat-pill-content">
-                            <span class="stat-pill-label">System Status</span>
-                            <span class="stat-pill-value">Active</span>
-                        </div>
-                    </div>
-                    <button onclick="logout()" class="btn-custom btn-secondary-custom" style="height: fit-content;">
-                        <span>🚪 Logout</span>
-                    </button>
+
+    <!-- ALERTS -->
+    <div id="alerts"></div>
+
+    <!-- MODAL -->
+    <div id="analysis-modal" class="modal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div class="modal-title">🤖 AI Analysis Report</div>
+                <div class="modal-meta">
+                    <div class="modal-chip"><div class="chip-dot"></div><span id="modal-candidate">Candidate</span></div>
+                    <div class="modal-chip"><span id="modal-score">Score: N/A</span></div>
                 </div>
             </div>
-        </header>
-
-        <div class="row">
-            <!-- LEFT COLUMN: Job Creation & Directory -->
-            <div class="col-lg-5 col-md-12">
-
-                <!-- CREATE JOB SECTION -->
-                <div class="section-card fade-in-up" style="animation-delay: 0.1s;">
-                    <div class="card-header-custom">
-                        <div class="card-header-left">
-                            <div class="card-step-badge">01</div>
-                            <h2 class="card-title">Create Job Posting</h2>
-                        </div>
-                    </div>
-                    <div class="card-body-custom">
-                        <div class="form-group-custom">
-                            <label class="form-label-custom" for="job-title">Job Title</label>
-                            <input type="text" id="job-title" class="form-control-custom"
-                                placeholder="e.g., Senior Software Engineer" autocomplete="off">
-                        </div>
-
-                        <div class="form-group-custom">
-                            <label class="form-label-custom" for="job-tag-input">Unique Job Identifier</label>
-                            <input type="text" id="job-tag-input" class="form-control-custom"
-                                placeholder="e.g., JAVA-2026-01" autocomplete="off">
-                        </div>
-
-                        <div class="form-group-custom mb-0">
-                            <label class="form-label-custom" for="job-requirements">Job Requirements</label>
-                            <textarea id="job-requirements" class="form-control-custom"
-                                placeholder="Describe the role requirements, technical skills, experience level, and qualifications..."
-                                rows="5"></textarea>
-                        </div>
-
-                        <div class="mt-lg">
-                            <button onclick="createNewJob()" class="btn-custom btn-primary-custom btn-block-custom">
-                                <span>Register Job Posting</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- JOB DIRECTORY SECTION -->
-                <div class="section-card fade-in-up" style="animation-delay: 0.2s;">
-                    <div class="card-header-custom">
-                        <div class="card-header-left">
-                            <h2 class="card-title">Job Directory</h2>
-                        </div>
-                        <button onclick="loadJobs()" class="btn-custom btn-secondary-custom btn-sm-custom">
-                            <span>↻ Refresh</span>
-                        </button>
-                    </div>
-                    <div class="card-body-custom" style="padding: 0;">
-                        <div class="table-container">
-                            <table class="table-custom">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 80px;">ID</th>
-                                        <th>Job Title</th>
-                                        <th style="width: 150px;"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="job-list">
-                                    <tr>
-                                        <td colspan="3">
-                                            <div class="empty-state">
-                                                <div class="empty-state-icon">📋</div>
-                                                <div class="empty-state-title">Loading positions...</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="modal-scroll">
+                <div class="modal-body" id="modal-analysis">No analysis available.</div>
             </div>
-
-            <!-- RIGHT COLUMN: Upload & Rankings -->
-            <div class="col-lg-7 col-md-12">
-
-                <!-- UPLOAD & PROCESS SECTION -->
-                <div class="section-card fade-in-up" style="animation-delay: 0.3s;">
-                    <div class="card-header-custom">
-                        <div class="card-header-left">
-                            <div class="card-step-badge">02</div>
-                            <h2 class="card-title">Upload & Analyze Candidates</h2>
-                        </div>
-                    </div>
-                    <div class="card-body-custom">
-                        <div class="form-row-custom">
-                            <div class="form-group-custom mb-0">
-                                <label class="form-label-custom" for="job-id-display">Target Job ID</label>
-                                <input type="number" id="job-id-display" class="form-control-custom"
-                                    placeholder="Select from directory">
-                            </div>
-                            <div class="form-group-custom mb-0">
-                                <label class="form-label-custom" for="resume-files">Resume Files</label>
-                                <input type="file" id="resume-files" class="form-control-custom" multiple
-                                    accept=".pdf,.doc,.docx">
-                            </div>
-                        </div>
-
-                        <div class="btn-group-custom mt-lg">
-                            <button onclick="uploadFiles()" class="btn-custom btn-success-custom btn-block-custom">
-                                <span>Upload Resume Files</span>
-                            </button>
-                            <button onclick="runBatch()" id="btn-run"
-                                class="btn-custom btn-primary-custom btn-block-custom">
-                                <span>Run AI Analysis</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RANKINGS SECTION -->
-                <div class="section-card fade-in-up" style="animation-delay: 0.4s;">
-                    <div class="card-header-custom">
-                        <div class="card-header-left">
-                            <h2 class="card-title">Candidate Rankings</h2>
-                        </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button onclick="refreshTable()" class="btn-custom btn-secondary-custom btn-sm-custom">
-                                <span>↻ Refresh</span>
-                            </button>
-                            <button onclick="exportToCSV()" class="btn-custom btn-secondary-custom btn-sm-custom">
-                                <span>⬇ Export CSV</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body-custom" style="padding: 0;">
-                        <div style="overflow-x: auto;">
-                            <table class="table-custom">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 80px;">Rank</th>
-                                        <th>Candidate Name</th>
-                                        <th style="width: 120px;">Match Score</th>
-                                        <th>Summary</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="leaderboard">
-                                    <tr>
-                                        <td colspan="4">
-                                            <div class="empty-state">
-                                                <div class="empty-state-icon">👥</div>
-                                                <div class="empty-state-title">No candidates analyzed yet</div>
-                                                <div class="empty-state-description">Upload resumes and run AI analysis
-                                                    to see rankings</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="modal-foot">
+                <button class="btn-modal-close" onclick="closeAnalysisModal()">Close</button>
             </div>
         </div>
     </div>
 
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="logo">
+                <div class="logo-mark">⚡</div>
+                HR<span class="logo-sep">/</span>Recruit
+            </div>
+            <span class="topbar-pill">v2.0</span>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-user">
+                <div class="avatar" id="user-avatar">?</div>
+                <span id="user-email">Loading…</span>
+            </div>
+            <button class="btn-signout" onclick="logout()">Sign out</button>
+        </div>
+    </header>
+
+    <!-- APP SHELL -->
+    <div class="app-shell">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <div class="sb-section">
+                <div class="sb-label">Active Job</div>
+                <div class="field">
+                    <label for="upload-job">Select job</label>
+                    <select id="upload-job">
+                        <option value="">— choose a job —</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="sb-section">
+                <div class="sb-label">Create New Job</div>
+                <form onsubmit="createJob(event)">
+                    <div class="field">
+                        <label for="job-title">Job title</label>
+                        <input type="text" id="job-title" placeholder="e.g. Senior React Dev" required>
+                    </div>
+                    <div class="field">
+                        <label for="job-tag">Job tag</label>
+                        <input type="text" id="job-tag" placeholder="e.g. react-senior-24" required>
+                    </div>
+                    <div class="field">
+                        <label for="job-requirements">Requirements</label>
+                        <textarea id="job-requirements" placeholder="Key skills, experience…" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="create-job-btn">
+                        <span>✨</span> Create Job
+                    </button>
+                </form>
+            </div>
+
+            <div class="sb-section">
+                <div class="sb-label">Upload Resumes</div>
+                <div class="file-drop" onclick="document.getElementById('file-input').click()">
+                    <input type="file" id="file-input" multiple accept=".pdf,.docx,.doc" onchange="handleFileSelect(event)">
+                    <span class="file-drop-icon">📁</span>
+                    <div class="file-drop-title">Click to select files</div>
+                    <div class="file-drop-hint">PDF, DOC, DOCX — max 100 MB</div>
+                </div>
+                <div id="selected-files"></div>
+                <button class="btn btn-primary" onclick="uploadResumes()" id="upload-btn" disabled>
+                    <span>⬆️</span> Upload Resumes
+                </button>
+                <button class="btn btn-green" onclick="analyzeBatch()" id="analyze-btn" disabled>
+                    <span>🤖</span> Analyze with AI
+                </button>
+            </div>
+
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main">
+
+            <div class="main-header">
+                <div class="eyebrow">Recruitment Dashboard</div>
+                <h1 class="main-title">Welcome <span>Back</span></h1>
+                <p class="main-sub">Manage jobs, upload resumes, and surface top candidates with AI scoring.</p>
+            </div>
+
+            <!-- JOBS PANEL -->
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-head-left">
+                        <div class="panel-icon">📋</div>
+                        <div>
+                            <div class="panel-title">Open Positions</div>
+                            <div class="panel-subtitle">All created jobs</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="jobs-list">
+                    <div class="empty">
+                        <span class="empty-icon">📭</span>
+                        <div class="empty-title">No jobs yet</div>
+                        <div class="empty-hint">Create a job using the sidebar form</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESUMES PANEL -->
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-head-left">
+                        <div class="panel-icon">📄</div>
+                        <div>
+                            <div class="panel-title">Uploaded Resumes</div>
+                            <div class="panel-subtitle">Select a job to view its resumes</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="resumes-list">
+                    <div class="empty">
+                        <span class="empty-icon">📄</span>
+                        <div class="empty-title">No resumes yet</div>
+                        <div class="empty-hint">Upload files using the sidebar</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RANKINGS PANEL -->
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-head-left">
+                        <div class="panel-icon">🏆</div>
+                        <div>
+                            <div class="panel-title">AI Rankings</div>
+                            <div class="panel-subtitle">Candidates scored and ranked</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="rankings-list">
+                    <div class="empty">
+                        <span class="empty-icon">📊</span>
+                        <div class="empty-title">No rankings yet</div>
+                        <div class="empty-hint">Run AI analysis to generate scores</div>
+                    </div>
+                </div>
+                <div class="panel-foot">
+                    <button class="btn-export" onclick="exportCSV()" id="export-btn" disabled>
+                        <span>📥</span> Export to CSV
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
     <script>
-        // ==================== INITIALIZATION ====================
-        if (!checkAuthentication()) {
-            throw new Error('Not authenticated');
-        }
-        window.onload = loadJobs;
+        const API_URL = window.location.origin;
+        function getToken() { return localStorage.getItem('auth_token'); }
 
-        // ==================== AUTHENTICATION CHECK ====================
-        function checkAuthentication() {
-            const authToken = localStorage.getItem('auth_token');
-            const guestToken = localStorage.getItem('guest_session_token');
+        window.addEventListener('load', async () => {
+            const token = getToken();
+            if (!token) { window.location.href = '/'; return; }
+            try {
+                const res = await fetch(`${API_URL}/auth/me`, { headers:{ 'Authorization':`Bearer ${token}` } });
+                if (res.ok) {
+                    const user = await res.json();
+                    const ud = user.user || user;
+                    const email = ud.email || user.email;
+                    if (email) {
+                        document.getElementById('user-email').textContent = email;
+                        document.getElementById('user-avatar').textContent = email.charAt(0).toUpperCase();
+                    } else { localStorage.clear(); window.location.href = '/'; return; }
+                } else { localStorage.clear(); window.location.href = '/'; return; }
+            } catch { localStorage.clear(); window.location.href = '/'; return; }
+            loadJobs();
+        });
 
-            // If no auth token AND no guest token, redirect to login
-            if (!authToken && !guestToken) {
-                window.location.href = '/login';
-                return false;
-            }
-            return true;
-        }
-
-        // ==================== HELPER FUNCTIONS ====================
-        function isGuest() {
-            return localStorage.getItem('is_guest') === 'true';
-        }
-
-        function isAuthenticated() {
-            return localStorage.getItem('auth_token') !== null;
-        }
-
-        // ==================== GUEST JOBS MANAGEMENT ====================
-        function getGuestJobs() {
-            const jobs = localStorage.getItem('guest_jobs');
-            return jobs ? JSON.parse(jobs) : [];
-        }
-
-        function saveGuestJobs(jobs) {
-            localStorage.setItem('guest_jobs', JSON.stringify(jobs));
+        function showAlert(message, type='success') {
+            const icons = { success:'✓', error:'✕', warning:'⚠', info:'ℹ' };
+            const el = document.createElement('div');
+            el.className = `alert alert-${type}`;
+            el.innerHTML = `<span class="alert-ico">${icons[type]||'ℹ'}</span><span>${message}</span>`;
+            document.getElementById('alerts').appendChild(el);
+            setTimeout(() => {
+                el.style.transition = 'opacity .3s, transform .3s';
+                el.style.opacity = '0'; el.style.transform = 'translateX(10px)';
+                setTimeout(() => el.remove(), 320);
+            }, 4000);
         }
 
-        function addGuestJob(title, tag, requirements) {
-            const jobs = getGuestJobs();
-            const newJob = {
-                id: Date.now(), // Use timestamp as unique ID
-                title: title,
-                tag: tag,
-                requirements: requirements,
-                created_at: new Date().toISOString()
+        async function createJob(e) {
+            e.preventDefault();
+            const token = getToken();
+            const btn = document.getElementById('create-job-btn');
+            const job = {
+                job_title:    document.getElementById('job-title').value.trim(),
+                job_tag:      document.getElementById('job-tag').value.trim(),
+                requirements: document.getElementById('job-requirements').value.trim()
             };
-            jobs.push(newJob);
-            saveGuestJobs(jobs);
-            return newJob.id;
-        }
-
-        function deleteGuestJob(jobId) {
-            let jobs = getGuestJobs();
-            jobs = jobs.filter(job => job.id !== jobId);
-            saveGuestJobs(jobs);
-            // Also delete associated resumes
-            deleteGuestResumesForJob(jobId);
-        }
-
-        // ==================== GUEST RESUMES MANAGEMENT ====================
-        function getGuestResumes(jobId) {
-            const resumes = localStorage.getItem(`guest_resumes_${jobId}`);
-            return resumes ? JSON.parse(resumes) : [];
-        }
-
-        function saveGuestResumes(jobId, resumes) {
-            localStorage.setItem(`guest_resumes_${jobId}`, JSON.stringify(resumes));
-        }
-
-        function addGuestResume(jobId, filename, content, candidateName) {
-            const resumes = getGuestResumes(jobId);
-            const newResume = {
-                id: Date.now(),
-                filename: filename,
-                content: content,
-                candidate_name: candidateName || filename,
-                match_score: 0,
-                ai_analysis: ''
-            };
-            resumes.push(newResume);
-            saveGuestResumes(jobId, resumes);
-            return newResume.id;
-        }
-
-        function deleteGuestResumesForJob(jobId) {
-            localStorage.removeItem(`guest_resumes_${jobId}`);
-        }
-
-        // ==================== LOGOUT ====================
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                // Check if user is guest
-                const isGuestUser = localStorage.getItem('is_guest') === 'true';
-
-                if (isGuestUser) {
-                    // For guest users: keep all guest data (jobs, resumes, etc.)
-                    localStorage.removeItem('guest_session_token');
-                    // is_guest, guest_jobs, and all guest_resumes_* persist so they load next time
-                } else {
-                    // For authenticated users: clear everything
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_id');
-                    localStorage.removeItem('email');
-                    localStorage.removeItem('guest_session_token');
-                    localStorage.removeItem('is_guest');
-                    localStorage.removeItem('guest_jobs');
-
-                    // Also remove any guest resume data
-                    const keys = Object.keys(localStorage);
-                    keys.forEach(key => {
-                        if (key.startsWith('guest_resumes_')) {
-                            localStorage.removeItem(key);
-                        }
-                    });
+            if (!job.job_title || !job.job_tag || !job.requirements) { showAlert('Please fill all fields', 'error'); return; }
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span><span>Creating…</span>';
+            try {
+                const res = await fetch(`${API_URL}/create-job/`, {
+                    method:'POST',
+                    headers:{ 'Authorization':`Bearer ${token}`, 'Content-Type':'application/json' },
+                    body: JSON.stringify(job)
+                });
+                if (res.ok) { showAlert('Job created!', 'success'); e.target.reset(); loadJobs(); }
+                else {
+                    let msg = 'Failed to create job';
+                    try { const d = await res.json(); if (d.detail) msg = typeof d.detail==='string'?d.detail:JSON.stringify(d.detail); } catch {}
+                    showAlert(msg, 'error');
                 }
-
-                // Redirect to login
-                window.location.href = '/login';
-            }
+            } catch (err) { showAlert('Error: '+(err.message||'Unable to create job'), 'error'); }
+            finally { btn.disabled=false; btn.innerHTML='<span>✨</span> Create Job'; }
         }
 
-        // ==================== LOAD JOBS ====================
         async function loadJobs() {
+            const token = getToken();
             try {
-                const jobList = document.getElementById('job-list');
-                let jobs = [];
-
-                // If guest, load from localStorage
-                if (isGuest()) {
-                    jobs = getGuestJobs();
-                    displayJobList(jobs);
-                } else if (isAuthenticated()) {
-                    // If authenticated, load from server
-                    const response = await fetch('/jobs/', {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        }
-                    });
-                    const data = await response.json();
-                    displayJobList(data.jobs || []);
+                const res = await fetch(`${API_URL}/jobs/`, { headers:{ 'Authorization':`Bearer ${token}` } });
+                if (res.ok) {
+                    const data = await res.json();
+                    const jobs = data.jobs || data || [];
+                    renderJobsTable(jobs);
+                    updateJobSelect(jobs);
                 }
-            } catch (err) {
-                console.error("Error loading jobs:", err);
-                document.getElementById('job-list').innerHTML = `
-                    <tr>
-                        <td colspan="3">
-                            <div class="empty-state">
-                                <div class="empty-state-icon">⚠️</div>
-                                <div class="empty-state-title">Error loading positions</div>
-                                <div class="empty-state-description">Please try again</div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }
+            } catch(e) { console.error(e); }
         }
 
-        function displayJobList(jobs) {
-            const jobList = document.getElementById('job-list');
-            jobList.innerHTML = "";
+        function renderJobsTable(jobs) {
+            const el = document.getElementById('jobs-list');
+            if (!jobs || jobs.length===0) {
+                el.innerHTML = `<div class="empty"><span class="empty-icon">📭</span><div class="empty-title">No jobs yet</div><div class="empty-hint">Create a job using the sidebar form</div></div>`;
+                return;
+            }
+            const rows = jobs.map(j=>`
+                <tr>
+                    <td>${j.job_title}</td>
+                    <td><code>${j.job_tag}</code></td>
+                    <td>${new Date(j.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</td>
+                    <td><button class="btn-row btn-del" onclick="deleteJob('${j.id}')">🗑 Delete</button></td>
+                </tr>`).join('');
+            el.innerHTML = `<div class="tbl-wrap"><table class="tbl">
+                <thead><tr><th>Job Title</th><th>Tag</th><th>Created</th><th>Action</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table></div>`;
+        }
 
-            if (jobs && jobs.length > 0) {
-                jobs.forEach((job, index) => {
-                    const row = document.createElement('tr');
-                    row.className = 'fade-in-up';
-                    row.style.animationDelay = `${index * 0.05}s`;
-                    const jobId = job.id || job.job_id;
-                    row.innerHTML = `
-                        <td><span class="text-mono text-bold" style="color: var(--color-primary);">${jobId}</span></td>
-                        <td>${escapeHtml(job.title || job.job_title)}</td>
-                        <td style="display: flex; gap: 8px;">
-                            <button class="btn-custom btn-secondary-custom btn-sm-custom" 
-                                    onclick="selectJob(${jobId})">
-                                Select
-                            </button>
-                            <button class="btn-custom btn-sm-custom" 
-                                    onclick="deleteJob(${jobId})"
-                                    style="background-color: var(--color-danger); color: white; border: none;">
-                                Delete
-                            </button>
-                        </td>
-                    `;
-                    jobList.appendChild(row);
-                });
+        function updateJobSelect(jobs) {
+            const sel = document.getElementById('upload-job');
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">— choose a job —</option>';
+            if (jobs) jobs.forEach(j => {
+                const o = document.createElement('option');
+                o.value = j.id; o.textContent = `${j.job_title} (${j.job_tag})`;
+                sel.appendChild(o);
+            });
+            sel.value = cur;
+            sel.onchange = () => { if (sel.value) { loadResumes(); loadRankings(); } };
+        }
+
+        async function deleteJob(id) {
+            if (!confirm('Delete this job? All resumes will be removed.')) return;
+            const token = getToken();
+            try {
+                const res = await fetch(`${API_URL}/delete-job/?job_id=${id}`, { method:'DELETE', headers:{ 'Authorization':`Bearer ${token}` } });
+                if (res.ok) { showAlert('Job deleted', 'success'); loadJobs(); }
+                else showAlert('Failed to delete job', 'error');
+            } catch { showAlert('Error deleting job', 'error'); }
+        }
+
+        let selectedFiles = [];
+        function handleFileSelect(e) {
+            selectedFiles = Array.from(e.target.files);
+            const box = document.getElementById('selected-files');
+            if (selectedFiles.length) {
+                box.innerHTML = `<div class="files-chip">✓ ${selectedFiles.length} file(s) ready</div>`;
+                document.getElementById('upload-btn').disabled = false;
             } else {
-                jobList.innerHTML = `
-                    <tr>
-                        <td colspan="3">
-                            <div class="empty-state">
-                                <div class="empty-state-icon">📋</div>
-                                <div class="empty-state-title">No job postings yet</div>
-                                <div class="empty-state-description">Create your first position above</div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                box.innerHTML = '';
+                document.getElementById('upload-btn').disabled = true;
             }
         }
 
-        // ==================== SELECT JOB ====================
-        function selectJob(id) {
-            document.getElementById('job-id-display').value = id;
-            refreshTable();
+        function getErrorMessage(err) {
+            if (typeof err==='string') return err;
+            if (err.detail) return typeof err.detail==='string'?err.detail:JSON.stringify(err.detail);
+            if (err.message) return err.message;
+            return JSON.stringify(err);
         }
 
-        // ==================== DELETE JOB ====================
-        async function deleteJob(jobId) {
-            if (!confirm(`Are you sure you want to delete Job ID ${jobId}? This will also delete all associated resumes.`)) {
-                return;
-            }
-
+        async function uploadResumes() {
+            if (!selectedFiles.length) { showAlert('Please select files', 'error'); return; }
+            const jobId = document.getElementById('upload-job').value;
+            if (!jobId) { showAlert('Please select a job', 'error'); return; }
+            const token = getToken();
+            const fd = new FormData();
+            selectedFiles.forEach(f => fd.append('files', f));
+            const btn = document.getElementById('upload-btn');
+            btn.disabled=true; btn.innerHTML='<span class="loading-spinner"></span><span>Uploading…</span>';
             try {
-                // If guest, delete from localStorage
-                if (isGuest()) {
-                    deleteGuestJob(jobId);
-                    alert(`✓ Job deleted`);
-                    loadJobs();
-                    // Clear job display if it was the selected job
-                    const currentJobId = parseInt(document.getElementById('job-id-display').value);
-                    if (currentJobId === jobId) {
-                        document.getElementById('job-id-display').value = '';
-                        refreshTable();
-                    }
-                } else {
-                    // If authenticated, delete from server
-                    const response = await fetch(`/delete-job/?job_id=${jobId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        }
-                    });
-
-                    const result = await response.json();
-
-                    if (result.message) {
-                        alert(`✓ ${result.message}`);
-                        loadJobs();
-                        // Clear job display if it was the selected job
-                        const currentJobId = parseInt(document.getElementById('job-id-display').value);
-                        if (currentJobId === jobId) {
-                            document.getElementById('job-id-display').value = '';
-                            refreshTable();
-                        }
-                    } else if (result.error) {
-                        alert(`❌ ${result.error}`);
-                    }
-                }
-            } catch (err) {
-                console.error("Error deleting job:", err);
-                alert("❌ Error deleting job. Please try again.");
-            }
+                const res = await fetch(`${API_URL}/upload/?job_id=${jobId}`, { method:'POST', headers:{ 'Authorization':`Bearer ${token}` }, body:fd });
+                const data = await res.json();
+                if (res.ok) {
+                    showAlert(`${data.added} resume(s) uploaded!`, 'success');
+                    if (data.skipped>0) showAlert(`${data.skipped} duplicate(s) skipped`, 'warning');
+                    selectedFiles=[];
+                    document.getElementById('file-input').value='';
+                    document.getElementById('selected-files').innerHTML='';
+                    loadResumes(); loadJobs();
+                } else showAlert('Upload failed: '+getErrorMessage(data), 'error');
+            } catch(err) { showAlert('Error: '+(err.message||'Unable to upload'), 'error'); }
+            finally { btn.disabled=!selectedFiles.length; btn.innerHTML='<span>⬆️</span> Upload Resumes'; }
         }
 
-        // ==================== CREATE JOB ====================
-        async function createNewJob() {
-            const title = document.getElementById('job-title').value.trim();
-            const tag = document.getElementById('job-tag-input').value.trim();
-            const reqs = document.getElementById('job-requirements').value.trim();
-
-            if (!title || !tag || !reqs) {
-                alert("⚠️ All fields are required");
-                return;
-            }
-
+        async function analyzeBatch() {
+            const token = getToken();
+            const jobId = document.getElementById('upload-job').value;
+            if (!jobId) { showAlert('Please select a job first', 'error'); return; }
+            const btn = document.getElementById('analyze-btn');
+            const orig = btn.innerHTML;
+            btn.disabled=true; btn.innerHTML='<span class="loading-spinner"></span><span>Analyzing…</span>';
             try {
-                // If guest, save to localStorage
-                if (isGuest()) {
-                    // Check for duplicate tags in guest jobs
-                    const existingJobs = getGuestJobs();
-                    if (existingJobs.some(job => job.tag === tag)) {
-                        alert("✗ Job tag already exists. Please use a unique ID.");
-                        return;
-                    }
-
-                    const jobId = addGuestJob(title, tag, reqs);
-                    alert(`✓ Job registered successfully (ID: ${jobId})`);
-                    document.getElementById('job-id-display').value = jobId;
-                    document.getElementById('job-title').value = '';
-                    document.getElementById('job-tag-input').value = '';
-                    document.getElementById('job-requirements').value = '';
-                    loadJobs();
-                } else {
-                    // If authenticated, send to server
-                    const response = await fetch(`/create-job/?title=${encodeURIComponent(title)}&tag=${encodeURIComponent(tag)}&requirements=${encodeURIComponent(reqs)}`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        }
-                    });
-
-                    const result = await response.json();
-
-                    if (result.job_id) {
-                        alert(`✓ Job registered successfully (ID: ${result.job_id})`);
-                        document.getElementById('job-id-display').value = result.job_id;
-                        document.getElementById('job-title').value = '';
-                        document.getElementById('job-tag-input').value = '';
-                        document.getElementById('job-requirements').value = '';
-                        loadJobs();
-                    } else {
-                        alert("✗ Error: " + (result.error || "Registration failed. The job tag may already exist."));
-                    }
-                }
-            } catch (err) {
-                console.error("Error creating job:", err);
-                alert("✗ An error occurred while creating the job");
-            }
+                const res = await fetch(`${API_URL}/analyze-batch/?job_id=${jobId}`, { method:'POST', headers:{ 'Authorization':`Bearer ${token}` } });
+                const data = await res.json();
+                if (res.ok) { showAlert(`${data.analyzed||0} resume(s) analyzed!`, 'success'); loadResumes(); loadRankings(); }
+                else showAlert('Analysis failed: '+getErrorMessage(data), 'error');
+            } catch(err) { showAlert('Error: '+(err.message||'Unable to analyze'), 'error'); }
+            finally { btn.disabled=false; btn.innerHTML=orig; }
         }
 
-        // ==================== UPLOAD FILES ====================
-        async function uploadFiles() {
-            const jobId = document.getElementById('job-id-display').value;
-            const files = document.getElementById('resume-files').files;
-
-            if (!jobId || files.length === 0) {
-                alert("⚠️ Please select a Job ID and choose files to upload");
-                return;
-            }
-
-            try {
-                // If guest, save to localStorage
-                if (isGuest()) {
-                    let addedCount = 0;
-                    let skippedCount = 0;
-
-                    for (const file of files) {
-                        const reader = new FileReader();
-                        reader.onload = function (e) {
-                            const content = e.target.result;
-                            const candidateName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
-                            addGuestResume(jobId, file.name, content, candidateName);
-                            addedCount++;
-                        };
-                        reader.readAsText(file);
-                    }
-
-                    setTimeout(() => {
-                        alert(`✅ Done!\nAdded: ${files.length} resumes to local storage`);
-                        document.getElementById('resume-files').value = "";
-                    }, 500);
-                } else {
-                    // If authenticated, send to server
-                    const formData = new FormData();
-                    for (const file of files) {
-                        formData.append("files", file);
-                    }
-
-                    const response = await fetch(`/upload/?job_id=${jobId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: formData
-                    });
-
-                    const result = await response.json();
-
-                    if (response.ok) {
-                        alert(`✅ Done!\nAdded: ${result.added} new resumes\nSkipped: ${result.skipped} duplicates`);
-                        document.getElementById('resume-files').value = "";
-                    } else {
-                        alert("✗ Upload failed. " + (result.error || "Please try again."));
-                    }
-                }
-            } catch (err) {
-                console.error("Error uploading files:", err);
-                alert("✗ An error occurred during upload");
-            }
-        }
-
-        // ==================== RUN AI ANALYSIS ====================
-        async function runBatch() {
-            const jobId = document.getElementById('job-id-display').value;
-            const btn = document.getElementById('btn-run');
-
-            if (!jobId) {
-                alert("⚠️ Please select a Job ID");
-                return;
-            }
-
-            try {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="loading-spinner"></span><span>Processing...</span>';
-
-                // If guest, analyze locally
-                if (isGuest()) {
-                    const resumes = getGuestResumes(jobId);
-                    if (resumes.length === 0) {
-                        alert("⚠️ No resumes to analyze");
-                        return;
-                    }
-
-                    // Strict job requirement validation - must be a valid, real job description
-                    const job = getGuestJobs().find(j => j.id == jobId);
-                    const jobReqs = job.requirements.toLowerCase().trim();
-
-                    // Comprehensive validation function
-                    function isValidJobRequirement(reqText) {
-                        // 1. Minimum length (must be at least 8 characters)
-                        if (reqText.length < 8) return false;
-
-                        // 2. Split into words and filter
-                        const words = reqText.split(/\W+/).filter(w => w.length > 0);
-                        if (words.length < 3) return false; // Need at least 3 words
-
-                        // 3. Check for gibberish patterns
-                        let validWords = 0;
-                        let totalVowels = 0;
-
-                        words.forEach(word => {
-                            if (word.length >= 2) {
-                                // Count vowels in word
-                                const vowels = (word.match(/[aeiou]/g) || []).length;
-                                const vowelRatio = vowels / word.length;
-
-                                // Valid word needs at least 25% vowels
-                                if (vowelRatio >= 0.25 && word.length <= 20) {
-                                    validWords++;
-                                    totalVowels += vowels;
-                                }
-                            }
-                        });
-
-                        // 4. Need minimum 3 valid words
-                        if (validWords < 3) return false;
-
-                        // 5. Overall vowel ratio must be good (30%+)
-                        const overallVowelRatio = totalVowels / reqText.replace(/\W/g, '').length;
-                        if (overallVowelRatio < 0.30) return false;
-
-                        // 6. No gibberish pattern: 4+ repeated characters
-                        if (/(.)\1{3,}/.test(reqText)) return false;
-
-                        // 7. Must not be mostly numbers
-                        const numberRatio = (reqText.match(/\d/g) || []).length / reqText.length;
-                        if (numberRatio > 0.5) return false;
-
-                        return true;
-                    }
-
-                    // Validate job requirement strictly
-                    const isValidJob = isValidJobRequirement(jobReqs);
-
-                    resumes.forEach(resume => {
-                        if (!isValidJob) {
-                            // INVALID JOB - Return 0% for ALL resumes
-                            resume.match_score = 0;
-                            resume.ai_analysis = "❌ Invalid job requirement - cannot analyze";
-                        } else {
-                            // VALID JOB - Perform keyword matching
-                            const resumeText = resume.content.toLowerCase();
-                            const validKeywords = jobReqs.split(/\W+/).filter(w => w.length >= 3);
-                            let matches = 0;
-                            let matchedList = [];
-
-                            validKeywords.forEach(keyword => {
-                                if (resumeText.includes(keyword)) {
-                                    matches++;
-                                    matchedList.push(keyword);
-                                }
-                            });
-
-                            resume.match_score = validKeywords.length > 0 ? Math.round((matches / validKeywords.length) * 100) : 0;
-                            resume.ai_analysis = matches > 0 ?
-                                `✓ Matched ${matches}/${validKeywords.length} keywords: ${matchedList.slice(0, 3).join(', ')}` :
-                                '✗ No matching keywords';
-                        }
-                    });
-
-                    saveGuestResumes(jobId, resumes);
-                    alert(isValidJob ? "✓ Analysis complete!" : "⚠️ Invalid job requirement - all scores set to 0%");
-                    refreshTable();
-                } else {
-                    // If authenticated, send to server
-                    const response = await fetch(`/analyze-batch/?job_id=${jobId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        }
-                    });
-                    const result = await response.json();
-                    alert("✓ Server analysis complete!");
-                    refreshTable();
-                }
-            } catch (err) {
-                console.error("Error running analysis:", err);
-                alert("✗ Analysis failed. Please try again.");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<span>Run AI Analysis</span>';
-            }
-        }
-
-        // ==================== REFRESH RANKINGS TABLE ====================
-        async function refreshTable() {
-            const jobId = document.getElementById('job-id-display').value;
+        async function loadResumes() {
+            const token = getToken();
+            const jobId = document.getElementById('upload-job').value;
             if (!jobId) return;
-
             try {
-                const table = document.getElementById('leaderboard');
-                let rankings = [];
-
-                // If guest, get from localStorage
-                if (isGuest()) {
-                    rankings = getGuestResumes(jobId);
-                    // Sort by score
-                    rankings.sort((a, b) => b.match_score - a.match_score);
-                    displayRankings(rankings);
-                } else {
-                    // If authenticated, get from server
-                    const response = await fetch(`/rankings/?job_id=${jobId}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        }
-                    });
-                    const data = await response.json();
-                    displayRankings(data.rankings || []);
-                }
-            } catch (err) {
-                console.error("Error refreshing rankings:", err);
-                document.getElementById('leaderboard').innerHTML = `
-                    <tr>
-                        <td colspan="4">
-                            <div class="empty-state">
-                                <div class="empty-state-icon">⚠️</div>
-                                <div class="empty-state-title">Error loading rankings</div>
-                                <div class="empty-state-description">Please try again</div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }
+                const res = await fetch(`${API_URL}/resumes/?job_id=${jobId}`, { headers:{ 'Authorization':`Bearer ${token}` } });
+                if (res.ok) { const d = await res.json(); renderResumesTable(d.resumes||[]); }
+            } catch(e) { console.error(e); }
         }
 
-        function displayRankings(rankings) {
-            const table = document.getElementById('leaderboard');
-            table.innerHTML = "";
-
-            if (rankings && rankings.length > 0) {
-                rankings.forEach((candidate, index) => {
-                    // Normalize field names (server uses 'score'/'summary', guests use 'match_score'/'ai_analysis')
-                    const score = candidate.match_score !== undefined ? candidate.match_score : candidate.score;
-                    const analysis = candidate.ai_analysis !== undefined ? candidate.ai_analysis : candidate.summary;
-
-                    const scoreClass = score > 70 ? 'high' :
-                        (score > 40 ? 'medium' : 'low');
-
-                    const row = document.createElement('tr');
-                    row.className = 'fade-in-up';
-                    row.style.animationDelay = `${index * 0.05}s`;
-                    row.innerHTML = `
-                        <td>
-                            <div class="rank-indicator">${index + 1}</div>
-                        </td>
-                        <td><span class="text-semibold">${escapeHtml(candidate.candidate_name)}</span></td>
-                        <td>
-                            <span class="score-badge ${scoreClass}">${score}%</span>
-                        </td>
-                        <td>
-                            <span class="text-sm" style="color: var(--color-text-secondary);">
-                                ${escapeHtml(analysis || 'Analysis pending')}
-                            </span>
-                        </td>
-                    `;
-                    table.appendChild(row);
-                });
-            } else {
-                table.innerHTML = `
-                    <tr>
-                        <td colspan="4">
-                            <div class="empty-state">
-                                <div class="empty-state-icon">👥</div>
-                                <div class="empty-state-title">No rankings available</div>
-                                <div class="empty-state-description">Upload and analyze resumes for this position</div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-
-        // ==================== UTILITY FUNCTION ====================
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ==================== EXPORT TO CSV ====================
-        async function exportToCSV() {
-            const jobId = document.getElementById('job-id-display').value;
-
-            if (!jobId) {
-                alert("⚠️ Please select a Job ID");
+        function renderResumesTable(resumes) {
+            const el = document.getElementById('resumes-list');
+            if (!resumes || resumes.length===0) {
+                el.innerHTML = `<div class="empty"><span class="empty-icon">📄</span><div class="empty-title">No resumes yet</div><div class="empty-hint">Upload files using the sidebar</div></div>`;
+                document.getElementById('analyze-btn').disabled=true;
                 return;
             }
-
-            try {
-                // If guest, export from localStorage
-                if (isGuest()) {
-                    const resumes = getGuestResumes(jobId);
-                    const job = getGuestJobs().find(j => j.id == jobId);
-
-                    if (resumes.length === 0) {
-                        alert("⚠️ No resumes to export");
-                        return;
-                    }
-
-                    // Generate CSV
-                    let csv = "Rank,Candidate Name,Match Score,Analysis\n";
-                    resumes.sort((a, b) => {
-                        const scoreA = a.match_score !== undefined ? a.match_score : a.score;
-                        const scoreB = b.match_score !== undefined ? b.match_score : b.score;
-                        return scoreB - scoreA;
-                    }).forEach((resume, idx) => {
-                        const score = resume.match_score !== undefined ? resume.match_score : resume.score;
-                        const analysis = resume.ai_analysis !== undefined ? resume.ai_analysis : resume.summary;
-                        csv += `${idx + 1},"${resume.candidate_name}",${score},"${analysis}"\n`;
-                    });
-
-                    // Download CSV
-                    const blob = new Blob([csv], { type: 'text/csv' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `candidates_${jobId}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-
-                    alert("✓ CSV exported successfully!");
-                } else {
-                    // If authenticated, get from server
-                    const response = await fetch(`/export-csv/?job_id=${jobId}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        }
-                    });
-                    if (!response.ok) {
-                        throw new Error("Export failed");
-                    }
-
-                    const contentDisposition = response.headers.get('content-disposition');
-                    let filename = 'candidates_export.csv';
-                    if (contentDisposition) {
-                        const matches = contentDisposition.match(/filename=([^;]+)/);
-                        if (matches) {
-                            filename = matches[1].replace(/"/g, '');
-                        }
-                    }
-
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-
-                    alert("✓ CSV exported successfully!");
-                }
-            } catch (err) {
-                console.error("Error exporting CSV:", err);
-                alert("✗ Export failed. Please try again.");
-            }
+            document.getElementById('analyze-btn').disabled=false;
+            const rows = resumes.map(r=>`
+                <tr>
+                    <td>${r.filename}</td>
+                    <td>${r.candidate_name||'—'}</td>
+                    <td>${r.analyzed
+                        ?'<span class="badge badge-green">✓ Analyzed</span>'
+                        :'<span class="badge badge-yellow">⏳ Pending</span>'}</td>
+                </tr>`).join('');
+            el.innerHTML = `<div class="tbl-wrap"><table class="tbl">
+                <thead><tr><th>Filename</th><th>Candidate Name</th><th>Status</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table></div>`;
         }
+
+        async function loadRankings() {
+            const token = getToken();
+            const jobId = document.getElementById('upload-job').value;
+            if (!jobId) return;
+            try {
+                const res = await fetch(`${API_URL}/rankings/?job_id=${jobId}`, { headers:{ 'Authorization':`Bearer ${token}` } });
+                if (res.ok) { const d = await res.json(); renderRankingsTable(d.rankings||[]); }
+            } catch(e) { console.error(e); }
+        }
+
+        // Store ranking data globally to avoid quote escaping issues
+        window.rankingData = {};
+
+        function renderRankingsTable(rankings) {
+            const el = document.getElementById('rankings-list');
+            if (!rankings || rankings.length===0) {
+                el.innerHTML = `<div class="empty"><span class="empty-icon">📊</span><div class="empty-title">No rankings yet</div><div class="empty-hint">Run AI analysis to generate scores</div></div>`;
+                document.getElementById('export-btn').disabled=true;
+                return;
+            }
+            window.rankingData = {};
+            const rows = rankings.map((r, idx) => {
+                const score = r.score||0;
+                const color = score>=75?'var(--accent)':score>=45?'var(--warning)':'var(--danger)';
+                const dataKey = `ranking_${idx}`;
+                window.rankingData[dataKey] = {
+                    name: r.candidate_name||'Unknown',
+                    score: score,
+                    analysis: r.summary||'No analysis available'
+                };
+                return `<tr>
+                    <td>${r.candidate_name||'Unknown'}</td>
+                    <td>${r.filename}</td>
+                    <td>
+                        <div class="score-wrap">
+                            <div class="score-bar"><div class="score-bar-fill" style="width:${score}%;background:${color};"></div></div>
+                            <span class="score-num" style="color:${color};">${r.score||'N/A'}%</span>
+                        </div>
+                    </td>
+                    <td>${r.summary && r.summary.trim()
+                        ?`<button class="btn-row btn-view" onclick="viewAnalysis('${dataKey}')">🔍 View</button>`
+                        :'<span style="color:var(--txt-3);font-size:12px;">—</span>'}</td>
+                </tr>`;
+            }).join('');
+            el.innerHTML = `<div class="tbl-wrap"><table class="tbl">
+                <thead><tr><th>Candidate</th><th>Resume File</th><th style="min-width:160px;">Score</th><th>Analysis</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table></div>`;
+            document.getElementById('export-btn').disabled=false;
+        }
+
+        async function exportCSV() {
+            const token = getToken();
+            const jobId = document.getElementById('upload-job').value;
+            if (!jobId) { showAlert('Please select a job first', 'error'); return; }
+            const btn = document.getElementById('export-btn');
+            btn.disabled=true; btn.innerHTML='<span class="loading-spinner"></span><span>Exporting…</span>';
+            try {
+                const res = await fetch(`${API_URL}/export-csv/?job_id=${jobId}`, { headers:{ 'Authorization':`Bearer ${token}` } });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href=url; a.download=`rankings_${Date.now()}.csv`;
+                    document.body.appendChild(a); a.click();
+                    URL.revokeObjectURL(url); document.body.removeChild(a);
+                    showAlert('CSV exported!', 'success');
+                } else { const d=await res.json(); showAlert('Export failed: '+getErrorMessage(d), 'error'); }
+            } catch(err) { showAlert('Error: '+(err.message||'Unable to export'), 'error'); }
+            finally { btn.disabled=false; btn.innerHTML='<span>📥</span> Export to CSV'; }
+        }
+
+        function logout() {
+            if (confirm('Sign out?')) { localStorage.clear(); window.location.href='/'; }
+        }
+
+        function viewAnalysis(dataKey) {
+            const data = window.rankingData[dataKey];
+            if (!data) { console.error('Analysis data not found:', dataKey); return; }
+            document.getElementById('modal-candidate').textContent = data.name;
+            document.getElementById('modal-score').textContent = `Score: ${data.score}%`;
+            document.getElementById('modal-analysis').textContent = data.analysis;
+            document.getElementById('analysis-modal').style.display = 'block';
+        }
+        function closeAnalysisModal() { document.getElementById('analysis-modal').style.display='none'; }
+        window.onclick = e => { if (e.target===document.getElementById('analysis-modal')) closeAnalysisModal(); };
     </script>
 </body>
-
 </html>

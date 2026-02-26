@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from fastapi import HTTPException, Request, status
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from urllib.parse import unquote
+import base64
 
 load_dotenv()
 
@@ -19,7 +21,6 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 # ==================== SIMPLE JWT IMPLEMENTATION ====================
 # Using base64 encoding for simplicity (PyJWT has library conflicts)
-import base64
 
 def create_access_token(user_id: str, email: str) -> str:
     """Create simple token"""
@@ -30,7 +31,7 @@ def create_access_token(user_id: str, email: str) -> str:
         "exp": (datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)).isoformat()
     }
     token_str = json.dumps(payload)
-    return base64.b64encode(token_str.encode()).decode()
+    return base64.b64encode(token_str.encode('utf-8')).decode('ascii')
 
 def create_refresh_token(user_id: str, email: str) -> str:
     """Create simple refresh token"""
@@ -41,17 +42,60 @@ def create_refresh_token(user_id: str, email: str) -> str:
         "exp": (datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)).isoformat()
     }
     token_str = json.dumps(payload)
-    return base64.b64encode(token_str.encode()).decode()
+    return base64.b64encode(token_str.encode('utf-8')).decode('ascii')
 
 def verify_token(token: str) -> Optional[Dict]:
-    """Verify simple token"""
+    """Verify simple token with robust error handling"""
+    if not token or not isinstance(token, str):
+        return None
+    
     try:
-        token_str = base64.b64decode(token.encode()).decode()
-        payload = json.loads(token_str)
+        # Clean up token - strip whitespace
+        original_token = token
+        token = token.strip()
         
+        # If token is too short, it's invalid
+        if len(token) < 10:
+            return None
+        
+        # Try to URL decode if needed (handles tokens sent through HTTP)
+        try:
+            decoded_token = unquote(token)
+        except:
+            decoded_token = token
+        
+        # Validate base64 characters (should only contain: A-Za-z0-9+/=)
+        valid_b64_chars = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=')
+        if not all(c in valid_b64_chars for c in decoded_token):
+            return None
+        
+        # Add padding if needed for base64
+        padding = 4 - (len(decoded_token) % 4)
+        if padding != 4:
+            decoded_token += '=' * padding
+        
+        # Decode base64 to get JSON string
+        try:
+            # Use validate=True to ensure proper base64
+            token_bytes = base64.b64decode(decoded_token, validate=True)
+            token_str = token_bytes.decode('utf-8')
+        except Exception as e:
+            # Silently fail for invalid tokens
+            return None
+        
+        # Parse JSON payload
+        try:
+            payload = json.loads(token_str)
+        except json.JSONDecodeError:
+            return None
+        
+        # Check expiration
         if "exp" in payload:
-            exp_dt = datetime.fromisoformat(payload["exp"])
-            if datetime.utcnow() > exp_dt:
+            try:
+                exp_dt = datetime.fromisoformat(payload["exp"])
+                if datetime.utcnow() > exp_dt:
+                    return None
+            except Exception:
                 return None
         
         user_id = payload.get("user_id")
@@ -63,8 +107,7 @@ def verify_token(token: str) -> Optional[Dict]:
             "email": payload.get("email"),
             "token_type": payload.get("token_type", "access")
         }
-    except Exception as e:
-        print(f"Token verification error: {e}")
+    except Exception:
         return None
 
 # ==================== PASSWORD HASHING ====================
@@ -188,103 +231,55 @@ def login_user(email: str, password: str) -> Optional[Dict]:
         print(f"Login error: {str(e)}")
         return None
 
-# ==================== GUEST SESSION MANAGEMENT ====================
-
-def create_guest_session() -> str:
-    """Create a guest session and return session token"""
-    session_token = str(uuid.uuid4())
-    
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    INSERT INTO guest_sessions (session_token, data, created_at, expires_at)
-                    VALUES (%s, %s, NOW(), NOW() + INTERVAL '7 days')
-                    """,
-                    (session_token, "{}")
-                )
-                conn.commit()
-        return session_token
-    except psycopg2.Error as e:
-        print(f"Error creating guest session: {str(e)}")
-        raise
-
-def get_guest_session(session_token: str) -> Optional[Dict]:
-    """Retrieve guest session data"""
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute(
-                    "SELECT id, session_token, data, created_at, expires_at, migrated_to_user_id FROM guest_sessions WHERE session_token = %s AND expires_at > NOW()",
-                    (session_token,)
-                )
-                session = cur.fetchone()
-                return dict(session) if session else None
-    except psycopg2.Error as e:
-        print(f"Error retrieving guest session: {str(e)}")
-        return None
-
-def update_guest_session_data(session_token: str, data: Dict) -> bool:
-    """Update guest session data"""
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE guest_sessions SET data = %s WHERE session_token = %s",
-                    (json.dumps(data), session_token)
-                )
-                conn.commit()
-        return True
-    except psycopg2.Error as e:
-        print(f"Error updating guest session: {str(e)}")
-        return False
-
-def migrate_guest_session_to_user(session_token: str, user_id: str) -> bool:
-    """Mark guest session as migrated to user"""
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    UPDATE guest_sessions 
-                    SET migrated_to_user_id = %s, migrated_at = NOW()
-                    WHERE session_token = %s
-                    """,
-                    (user_id, session_token)
-                )
-                conn.commit()
-        return True
-    except psycopg2.Error as e:
-        print(f"Error marking guest session as migrated: {str(e)}")
-        return False
-
 # ==================== TOKEN EXTRACTION ====================
 
 def extract_token_from_request(request: Request) -> Optional[str]:
-    """Extract JWT token from request headers or cookies"""
-    # Try Authorization header first
-    auth_header = request.headers.get("Authorization")
-    if auth_header and auth_header.startswith("Bearer "):
-        return auth_header[7:]
+    """Extract JWT token from request - robust handling for multiple sources"""
     
-    # Try cookie
-    token = request.cookies.get("access_token")
-    if token:
-        return token
+    if not request:
+        return None
     
-    return None
-
-def extract_guest_token_from_request(request: Request) -> Optional[str]:
-    """Extract guest session token from request"""
-    # Try header
-    guest_token = request.headers.get("X-Guest-Session")
-    if guest_token:
-        return guest_token
+    # 1. Try Authorization header (case-insensitive in FastAPI)
+    auth_header = request.headers.get("Authorization") or request.headers.get("authorization") or ""
+    auth_header = auth_header.strip()
     
-    # Try cookie
-    guest_token = request.cookies.get("guest_session_token")
-    if guest_token:
-        return guest_token
+    if auth_header:
+        # Handle "Bearer token_string" format
+        if auth_header.lower().startswith("bearer "):
+            token = auth_header[7:].strip()  # Remove "Bearer " prefix
+            if token and len(token) > 10:
+                return token
+        # Handle plain token without Bearer prefix
+        elif len(auth_header) > 10 and " " not in auth_header:
+            return auth_header
+    
+    # 2. Try X-Token header
+    x_token = request.headers.get("X-Token") or request.headers.get("x-token") or ""
+    x_token = x_token.strip()
+    if x_token and len(x_token) > 10:
+        return x_token
+    
+    # 3. Try X-Access-Token header
+    x_access = request.headers.get("X-Access-Token") or request.headers.get("x-access-token") or ""
+    x_access = x_access.strip()
+    if x_access and len(x_access) > 10:
+        return x_access
+    
+    # 4. Try cookies
+    access_token = request.cookies.get("access_token") or ""
+    access_token = access_token.strip()
+    if access_token and len(access_token) > 10:
+        return access_token
+    
+    token_cookie = request.cookies.get("token") or ""
+    token_cookie = token_cookie.strip()
+    if token_cookie and len(token_cookie) > 10:
+        return token_cookie
+    
+    # 5. Try query parameter (least secure)
+    query_token = request.query_params.get("token") or ""
+    query_token = query_token.strip()
+    if query_token and len(query_token) > 10:
+        return query_token
     
     return None
